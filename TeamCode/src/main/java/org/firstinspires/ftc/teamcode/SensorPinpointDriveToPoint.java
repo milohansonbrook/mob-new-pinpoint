@@ -45,6 +45,8 @@ public class SensorPinpointDriveToPoint extends LinearOpMode {
         odo.resetPosAndIMU();
 
         nav.initializeMotors();
+        nav.setXYCoefficients(0.02,0.002,2.0,DistanceUnit.MM,12);
+        nav.setYawCoefficients(5.0,0,2.0, AngleUnit.DEGREES,2);
 
         StateMachine stateMachine;
         stateMachine = StateMachine.WAITING_FOR_START;
