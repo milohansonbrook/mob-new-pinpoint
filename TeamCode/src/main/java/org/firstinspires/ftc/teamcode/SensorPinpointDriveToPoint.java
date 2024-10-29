@@ -15,7 +15,7 @@ import java.util.Locale;
 
 public class SensorPinpointDriveToPoint extends LinearOpMode {
 
-    GoBildaPinpointDriver odo; // Declare OpMode member for the Odometry Computer
+    Pinpoint odo; // Declare OpMode member for the Odometry Computer
     private DriveToPoint nav = new DriveToPoint(this); //OpMode member for the point-to-point navigation class
 
     enum StateMachine{
@@ -27,7 +27,7 @@ public class SensorPinpointDriveToPoint extends LinearOpMode {
     }
 
     static final Pose2D TARGET_1 = new Pose2D(DistanceUnit.MM,0,0,AngleUnit.DEGREES,0);
-    static final Pose2D TARGET_2 = new Pose2D(DistanceUnit.MM, 2000, 0, AngleUnit.DEGREES, 90);
+    static final Pose2D TARGET_2 = new Pose2D(DistanceUnit.MM, 300, 20, AngleUnit.DEGREES, 0);
     static final Pose2D TARGET_3 = new Pose2D(DistanceUnit.MM,500,0, AngleUnit.DEGREES,0);
 
 
@@ -37,16 +37,17 @@ public class SensorPinpointDriveToPoint extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
 
-        odo = hardwareMap.get(GoBildaPinpointDriver.class,"odo");
+        odo = hardwareMap.get(Pinpoint.class,"odo");
         odo.setOffsets(-142.0, 120.0); //these are tuned for 3110-0002-0001 Product Insight #1
-        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        odo.setEncoderResolution(Pinpoint.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        odo.setEncoderDirections(Pinpoint.EncoderDirection.REVERSED, Pinpoint.EncoderDirection.FORWARD);
 
-        odo.resetPosAndIMU();
+        odo.reset();
 
         nav.initializeMotors();
-        nav.setXYCoefficients(0.02,0.002,2.0,DistanceUnit.MM,12);
-        nav.setYawCoefficients(5.0,0,2.0, AngleUnit.DEGREES,2);
+        nav.setXYCoefficients(0.02,0.002,0.0,DistanceUnit.MM,12);
+        nav.setYawCoefficients(1,0,0.0, AngleUnit.DEGREES,2);
+        nav.setDriveType(DriveToPoint.DriveType.TANK);
 
         StateMachine stateMachine;
         stateMachine = StateMachine.WAITING_FOR_START;
@@ -70,21 +71,21 @@ public class SensorPinpointDriveToPoint extends LinearOpMode {
             }
 
             if (stateMachine == StateMachine.DRIVE_TO_TARGET_1) {
-                if (nav.driveTo(odo.getPosition(), TARGET_1, 0.7, 3)) {
+                if (nav.driveTo(odo.getPosition(), TARGET_1, 0.5, 3)) {
                     telemetry.addLine("at position #1!");
                     stateMachine = StateMachine.DRIVE_TO_TARGET_2;
                 }
             }
 
             if (stateMachine == StateMachine.DRIVE_TO_TARGET_2){
-                if (nav.driveTo(odo.getPosition(), TARGET_2, 0.7, 3)) {
+                if (nav.driveTo(odo.getPosition(), TARGET_2, 0.5, 3)) {
                     telemetry.addLine("at position #2!");
-                    stateMachine = StateMachine.DRIVE_TO_TARGET_3;
+                    //stateMachine = StateMachine.DRIVE_TO_TARGET_3;
                 }
             }
 
             if (stateMachine == StateMachine.DRIVE_TO_TARGET_3){
-                if (nav.driveTo(odo.getPosition(), TARGET_3, 0.7, 3)){
+                if (nav.driveTo(odo.getPosition(), TARGET_3, 0.5, 3)){
                     telemetry.addLine("at position #3!");
                     stateMachine = StateMachine.AT_TARGET;
                 }
@@ -94,6 +95,9 @@ public class SensorPinpointDriveToPoint extends LinearOpMode {
             Pose2D pos = odo.getPosition();
             String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.MM), pos.getY(DistanceUnit.MM), pos.getHeading(AngleUnit.DEGREES));
             telemetry.addData("Position", data);
+
+            Pose2D heading = new Pose2D(DistanceUnit.MM,0,0,AngleUnit.RADIANS,nav.calculateTargetHeading(pos,TARGET_2));
+            telemetry.addData("target heading: ", heading.getHeading(AngleUnit.RADIANS));
             telemetry.update();
 
         }

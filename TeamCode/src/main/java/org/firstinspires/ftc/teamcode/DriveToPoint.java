@@ -2,11 +2,13 @@ package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
+import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.INCH;
 import static org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit.MM;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -16,10 +18,22 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 public class DriveToPoint {
 
+    public enum DriveType {
+        MECANUM,
+        TANK
+    }
+
     private enum Direction {
         x,
         y,
-        h;
+        h
+    }
+
+    private enum InBounds {
+        NOT_IN_BOUNDS,
+        IN_X_Y,
+        IN_HEADING,
+        IN_BOUNDS
     }
 
     private static double xyTolerance = 12;
@@ -48,7 +62,16 @@ public class DriveToPoint {
     private PIDLoops yPID = new PIDLoops();
     private PIDLoops hPID = new PIDLoops();
 
+    private PIDLoops xTankPID = new PIDLoops();
+
     private LinearOpMode myOpMode; //todo: consider if this is required
+
+    private DriveType selectedDriveType;
+
+
+    public void setDriveType(DriveType driveType){
+        selectedDriveType = driveType;
+    }
 
     public void setXYCoefficients(double p, double d, double acceleration, DistanceUnit unit, double tolerance){
         pGain = p;
@@ -77,20 +100,53 @@ public class DriveToPoint {
 
     public boolean driveTo(Pose2D currentPosition, Pose2D targetPosition, double power, double holdTime) {
         boolean atTarget;
-        double xPWR    = calculatePID(currentPosition,targetPosition,Direction.x);
-        double yPWR    = calculatePID(currentPosition,targetPosition,Direction.y);
-        double hOutput = calculatePID(currentPosition,targetPosition,Direction.h);
 
-        double heading = currentPosition.getHeading(AngleUnit.RADIANS);
-        double cosine  = Math.cos(heading);
-        double sine    = Math.sin(heading);
+        if (selectedDriveType == DriveType.TANK){
+            double xPWR;
+            double hPWR;
+            double headingTowardsTarget = calculateTargetHeading(currentPosition,targetPosition);
+            double lengthToTarget = Math.hypot((targetPosition.getX(MM) - currentPosition.getX(MM)),(targetPosition.getY(MM) - currentPosition.getY(MM)));
+            Pose2D temp = new Pose2D(MM,targetPosition.getX(MM),targetPosition.getY(MM),RADIANS,headingTowardsTarget);
 
-        double xOutput = (xPWR * cosine) + (yPWR * sine);
-        double yOutput = (xPWR * sine) - (yPWR * cosine);
+            if (headingTowardsTarget > (Math.PI/2) || headingTowardsTarget < -(Math.PI/2)){
+                //headingTowardsTarget -= Math.PI;
+                headingTowardsTarget = targetPosition.getHeading(RADIANS);
+                lengthToTarget = -lengthToTarget;
+            }
 
-        driveMecanums(xOutput*power, yOutput*power, hOutput*power);
+            xPWR = xTankPID.calculateAxisPID(lengthToTarget,pGain,dGain,accel,currentTime.time());
+            hPWR = calculatePID(currentPosition, temp, Direction.h);
 
-        if(inBounds(currentPosition,targetPosition)){
+//            if (inBounds(currentPosition,temp) == InBounds.IN_X_Y){
+//                xPWR = 0;
+//                hPWR = calculatePID(currentPosition,targetPosition,Direction.h);
+
+//            if(inBounds(currentPosition,temp) == InBounds.IN_HEADING) {
+//                xPWR = xTankPID.calculateAxisPID(lengthToTarget,pGain,dGain,accel,currentTime.time());
+//                hPWR = calculatePID(currentPosition, temp, Direction.h);
+//
+//            } else {
+//                xPWR = 0;
+//                hPWR = calculatePID(currentPosition, temp, Direction.h);
+//            }
+            driveTank(xPWR * power, hPWR * power);
+
+        } else {
+            double xPWR = calculatePID(currentPosition, targetPosition, Direction.x);
+            double yPWR = calculatePID(currentPosition, targetPosition, Direction.y);
+            double hOutput = calculatePID(currentPosition, targetPosition, Direction.h);
+
+            double heading = currentPosition.getHeading(AngleUnit.RADIANS);
+            double cosine = Math.cos(heading);
+            double sine = Math.sin(heading);
+
+            double xOutput = (xPWR * cosine) + (yPWR * sine);
+            double yOutput = (xPWR * sine) - (yPWR * cosine);
+
+            driveMecanums(xOutput * power, yOutput * power, hOutput * power);
+        }
+
+        if(inBounds(currentPosition,targetPosition) == InBounds.IN_BOUNDS){
             atTarget = true;
         }
         else {
@@ -127,13 +183,29 @@ public class DriveToPoint {
         rightBackDrive.setPower(rightBack);
     }
 
+    private void driveTank(double forward, double yaw){
+        double left = forward - yaw;
+        double right = forward + yaw;
+
+        double max = Math.max(Math.abs(left),Math.abs(right));
+
+        if (max > 1.0) {
+            left /= max;
+            right /= max;
+        }
+
+        leftFrontDrive.setPower(left);
+        rightFrontDrive.setPower(right);
+        leftBackDrive.setPower(left);
+        rightBackDrive.setPower(right);
+    }
+
     private DcMotor setupDriveMotor(String deviceName, DcMotor.Direction direction) {
         DcMotor aMotor = myOpMode.hardwareMap.get(DcMotor.class, deviceName);
         aMotor.setDirection(direction);
         aMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         return aMotor;
     }
-
 
     private double calculatePID(Pose2D currentPosition, Pose2D targetPosition, Direction direction){
         if(direction == Direction.x){
@@ -151,13 +223,32 @@ public class DriveToPoint {
         return 0;
     }
 
-    private boolean inBounds (Pose2D currPose, Pose2D trgtPose){
-        boolean xOutOfBounds = currPose.getX(MM) > (trgtPose.getX(MM) - xyTolerance) && currPose.getX(MM) < (trgtPose.getX(MM) + xyTolerance);
-        boolean yOutOfBounds = currPose.getY(MM) > (trgtPose.getY(MM) - xyTolerance) && currPose.getY(MM) < (trgtPose.getY(MM) + xyTolerance);
-        boolean hOutOfBounds = currPose.getHeading(RADIANS) > (trgtPose.getHeading(RADIANS) - yawTolerance) &&
+    private InBounds inBounds (Pose2D currPose, Pose2D trgtPose){
+        boolean xInBounds = currPose.getX(MM) > (trgtPose.getX(MM) - xyTolerance) && currPose.getX(MM) < (trgtPose.getX(MM) + xyTolerance);
+        boolean yInBounds = currPose.getY(MM) > (trgtPose.getY(MM) - xyTolerance) && currPose.getY(MM) < (trgtPose.getY(MM) + xyTolerance);
+        boolean hInBounds = currPose.getHeading(RADIANS) > (trgtPose.getHeading(RADIANS) - yawTolerance) &&
                 currPose.getHeading(RADIANS) < (trgtPose.getHeading(RADIANS) + yawTolerance);
 
-        return xOutOfBounds && yOutOfBounds && hOutOfBounds;
+        if (xInBounds && yInBounds && hInBounds){
+            return InBounds.IN_BOUNDS;
+        } else if (xInBounds && yInBounds){
+            return InBounds.IN_X_Y;
+        } else if (hInBounds){
+            return InBounds.IN_HEADING;
+        } else
+            return InBounds.NOT_IN_BOUNDS;
+    }
+
+    public double calculateTargetHeading(Pose2D currPose, Pose2D trgtPose){
+        double xDelta = trgtPose.getX(MM) - currPose.getX(MM);
+        double yDelta = trgtPose.getY(MM) - currPose.getY(MM);
+
+        if(Math.abs(xDelta) > xyTolerance || Math.abs(yDelta) > xyTolerance){
+            return Math.atan2(yDelta, xDelta);
+        } else {
+            return currPose.getHeading(RADIANS);
+        }
+
     }
 }
 
@@ -178,11 +269,11 @@ class PIDLoops{
             output /= max;
         }
 
-        if((output - previousOutput) > dV){
-            output = previousOutput + dV;
-        } else if ((output - previousOutput) < -dV){
-            output = previousOutput - dV;
-        }
+//        if((output - previousOutput) > dV){
+//            output = previousOutput + dV;
+//        } else if ((output - previousOutput) < -dV){
+//            output = previousOutput - dV;
+//        }
 
         previousOutput = output;
         previousError  = error;
