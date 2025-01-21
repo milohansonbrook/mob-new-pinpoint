@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
 import com.pedropathing.util.Constants;
@@ -11,23 +12,24 @@ import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
 @TeleOp
+@Config
 public class cuddleTeamLeader extends LinearOpMode {
     Servo intakeRight;
     Servo claw;
     Servo outtakeWrist;
     Servo outtakeArmRight;
     Servo outtakeArmLeft;
-    DcMotor slurpMotor;
+    Servo twoBarR;
+    Servo twoBarL;
     CRServo slurp;
     DcMotor grabMotorL;
     DcMotor grabMotorR;
-    public static double slurpSlideSpeed = 300;
-    public static double slurpLowerBound = 0.18;
-    public static double slurpUpperBound = 0.3;
-    public static int clawHeight = 2000;
-    public static double armMidPosL = 0.85;
+    public static double slurpLowerBound = 0.21;
+    public static double slurpUpperBound = 0.4;
+    public static int clawHeight = 1000;
+    public static double armMidPosL = 0.5;
     public static double armMidPosR = (1 - armMidPosL);
-    public static double wristMidPos = 0.39;
+    public static double wristMidPos = 0.5;
     boolean intakeDown;
     boolean aLast;
     boolean clawState;
@@ -48,24 +50,25 @@ public class cuddleTeamLeader extends LinearOpMode {
         intakeRight.scaleRange(slurpLowerBound, slurpUpperBound);
         intakeRight.setPosition(1);
 
+        twoBarL = hardwareMap.get(Servo.class, "twoBarL");
+        twoBarL.scaleRange(0.425, 0.69);
+        twoBarL.setPosition(1);
+
+        twoBarR = hardwareMap.get(Servo.class, "twoBarR");
+        twoBarR.scaleRange(0.31, 0.575);
+        twoBarR.setPosition(0);
+
         outtakeWrist = hardwareMap.get(Servo.class, "outtakeWrist");
-        outtakeWrist.scaleRange(0.3, 1);
+        outtakeWrist.scaleRange(0, 1);
         outtakeWrist.setPosition(wristMidPos);
 
         outtakeArmRight = hardwareMap.get(Servo.class, "outtakeArmRight");
-        outtakeArmRight.scaleRange(0.15, 0.8);
-        outtakeArmRight.setPosition(0.3);
+        outtakeArmRight.scaleRange(0, 1);
+        outtakeArmRight.setPosition(0.5);
 
         outtakeArmLeft = hardwareMap.get(Servo.class, "outtakeArmLeft");
-        outtakeArmLeft.scaleRange(0.2, 0.85);
-        outtakeArmLeft.setPosition(0.7);
-
-        slurpMotor = hardwareMap.get(DcMotor.class, "slurpMotor");
-        slurpMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slurpMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        slurpMotor.setTargetPosition(0);
-        slurpMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slurpMotor.setPower(1);
+        outtakeArmLeft.scaleRange(0, 1);
+        outtakeArmLeft.setPosition(0.5);
 
         grabMotorL = hardwareMap.get(DcMotor.class, "grabMotorL");
         grabMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -124,14 +127,6 @@ public class cuddleTeamLeader extends LinearOpMode {
             }
             yLast = gamepad1.y;
 
-            // SLIDE MOTOR CODE
-            if (gamepad1.right_trigger > 0 && slurpMotor.getCurrentPosition() + (int) (slurpSlideSpeed * gamepad1.right_trigger) < 1960) {
-                slurpMotor.setTargetPosition(slurpMotor.getCurrentPosition() + (int) (slurpSlideSpeed * gamepad1.right_trigger));
-            } else if (gamepad1.left_trigger > 0 && slurpMotor.getCurrentPosition() - (int) (slurpSlideSpeed * gamepad1.left_trigger) > 0) {
-                slurpMotor.setTargetPosition(slurpMotor.getCurrentPosition() - (int) (slurpSlideSpeed * gamepad1.left_trigger));
-            }
-
-
             //ARM MOTOR CODE
             if (gamepad1.dpad_right) {
                 grabMotorL.setTargetPosition(clawHeight);
@@ -144,21 +139,31 @@ public class cuddleTeamLeader extends LinearOpMode {
                 grabMotorR.setTargetPosition(0);
             }
 
+            //two bar code
+            if (gamepad1.right_trigger > 0.25) {
+                twoBarL.setPosition(twoBarL.getPosition() - 0.05*gamepad1.right_trigger);
+                twoBarR.setPosition(twoBarR.getPosition() + 0.05*gamepad1.right_trigger);
+            } else if (gamepad1.left_trigger > 0.25) {
+                twoBarL.setPosition(twoBarL.getPosition() + 0.05*gamepad1.left_trigger);
+                twoBarR.setPosition(twoBarR.getPosition() - 0.05*gamepad1.left_trigger);
+            }
+
+
             // potential specimen code
             if (gamepad1.x) {
-                grabMotorL.setTargetPosition(250);
-                grabMotorR.setTargetPosition(250);
+                grabMotorL.setTargetPosition(100);
+                grabMotorR.setTargetPosition(100);
                 outtakeArmRight.setPosition(0);
                 outtakeArmLeft.setPosition(1);
                 outtakeWrist.setPosition(0.8);
             }
             if (gamepad1.left_stick_button) {
-                grabMotorL.setTargetPosition(1400);
-                grabMotorR.setTargetPosition(1400);
+                grabMotorL.setTargetPosition(500);
+                grabMotorR.setTargetPosition(500);
             }
             if (gamepad1.right_stick_button) {
-                grabMotorL.setTargetPosition(2250);
-                grabMotorR.setTargetPosition(2250);
+                grabMotorL.setTargetPosition(700);
+                grabMotorR.setTargetPosition(700);
             }
 
             // ARM TOGGLE: Start or reset sequence
@@ -195,7 +200,6 @@ public class cuddleTeamLeader extends LinearOpMode {
                         intakeDown = false;
                         jiggle = true;
                         slurp.setPower(-1);
-                        slurpMotor.setTargetPosition(0);
                         if (elapsedTime >= 500) {
                             armSequenceStep++;
                             sequenceStartTime = System.currentTimeMillis();
@@ -265,7 +269,6 @@ public class cuddleTeamLeader extends LinearOpMode {
             telemetry.addData("Sequence Step", armSequenceStep);
             telemetry.addData("Sequence Active", armSequenceActive);
             telemetry.addData("Sequence Complete", armSequenceComplete);
-            telemetry.addData("extension", slurpMotor.getCurrentPosition());
             telemetry.addData("Claw State", clawState ? "Open" : "Closed");
             telemetry.update();
         }

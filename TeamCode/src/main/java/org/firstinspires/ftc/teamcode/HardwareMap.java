@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class HardwareMap {
     LinearOpMode opmode;
-    Servo intake, claw, outtakeWrist, outtakeArmLeft, outtakeArmRight, twoBarLeft, twoBarRight, slurp;
+    Servo intake, claw, outtakeWrist, outtakeArmLeft, outtakeArmRight, twoBarL, twoBarR, slurp;
     DcMotor grabMotorL, grabMotorR;
 
     public HardwareMap(LinearOpMode opmode){
@@ -21,16 +21,11 @@ public class HardwareMap {
         outtakeWrist = this.opmode.hardwareMap.get(Servo.class, "outtakeWrist");
         outtakeArmLeft = this.opmode.hardwareMap.get(Servo.class, "outtakeArmLeft");
         outtakeArmRight = this.opmode.hardwareMap.get(Servo.class, "outtakeArmRight");
-        twoBarLeft = this.opmode.hardwareMap.get(Servo.class, "twoBarLeft");
-        twoBarRight = this.opmode.hardwareMap.get(Servo.class, "twoBarRight");
+        twoBarL = this.opmode.hardwareMap.get(Servo.class, "twoBarL");
+        twoBarR = this.opmode.hardwareMap.get(Servo.class, "twoBarR");
         slurp = this.opmode.hardwareMap.get(Servo.class, "slurp");
         grabMotorL = this.opmode.hardwareMap.get(DcMotor.class, "grabMotorL");
         grabMotorR = this.opmode.hardwareMap.get(DcMotor.class, "grabMotorR");
-    }
-
-    public void setSlidePosition(int pos){
-        twoBarRight.setPosition(pos);
-        twoBarLeft.setPosition(pos);
     }
 
 }

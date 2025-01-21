@@ -20,8 +20,8 @@ public class MotorAndServoPoses extends LinearOpMode {
     Servo outtakeArmLeft;
     DcMotor grabMotorL;
     DcMotor grabMotorR;
-    Servo twoBarLeft;
-    Servo twoBarRight;
+    Servo twoBarL;
+    Servo twoBarR;
     private Follower follower;
     private final Pose startPose = new Pose(0,0,0);
 
@@ -77,8 +77,8 @@ public class MotorAndServoPoses extends LinearOpMode {
             telemetry.addData("outtakeWrist", outtakeWrist.getPosition());
             telemetry.addData("outtakeArmRight", outtakeArmRight.getPosition());
             telemetry.addData("outtakeArmLeft", outtakeArmLeft.getPosition());
-            telemetry.addData("twoBarLeft", twoBarLeft.getPosition());
-            telemetry.addData("twoBarRight", twoBarRight.getPosition());
+            telemetry.addData("twoBarL", twoBarL.getPosition());
+            telemetry.addData("twoBarR", twoBarR.getPosition());
             telemetry.addData("grabMotorL", grabMotorL.getCurrentPosition());
             telemetry.addData("grabMotorR", grabMotorR.getCurrentPosition());
 
