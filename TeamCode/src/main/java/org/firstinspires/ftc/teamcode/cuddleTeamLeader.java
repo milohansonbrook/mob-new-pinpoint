@@ -145,11 +145,11 @@ public class cuddleTeamLeader extends LinearOpMode {
 
             //two bar code
             if (gamepad1.right_trigger > 0.1) {
-                twoBarL.setPosition(twoBarL.getPosition() - 0.07*gamepad1.right_trigger);
-                twoBarR.setPosition(twoBarR.getPosition() + 0.07*gamepad1.right_trigger);
+                twoBarL.setPosition(twoBarL.getPosition() - 0.04*gamepad1.right_trigger);
+                twoBarR.setPosition(twoBarR.getPosition() + 0.04*gamepad1.right_trigger);
             } else if (gamepad1.left_trigger > 0.1) {
-                twoBarL.setPosition(twoBarL.getPosition() + 0.07*gamepad1.left_trigger);
-                twoBarR.setPosition(twoBarR.getPosition() - 0.07*gamepad1.left_trigger);
+                twoBarL.setPosition(twoBarL.getPosition() + 0.04*gamepad1.left_trigger);
+                twoBarR.setPosition(twoBarR.getPosition() - 0.04*gamepad1.left_trigger);
             }
 
 
