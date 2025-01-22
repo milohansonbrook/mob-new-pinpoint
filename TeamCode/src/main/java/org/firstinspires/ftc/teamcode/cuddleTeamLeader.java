@@ -27,7 +27,7 @@ public class cuddleTeamLeader extends LinearOpMode {
     public static double slurpLowerBound = 0.21;
     public static double slurpUpperBound = 0.4;
     public static int clawHeight = 1000;
-    public static double armMidPosL = 0.5;
+    public static double armMidPosL = 0.59;
     public static double armMidPosR = (1 - armMidPosL);
     public static double wristMidPos = 0.5;
     boolean intakeDown;
@@ -64,11 +64,11 @@ public class cuddleTeamLeader extends LinearOpMode {
 
         outtakeArmRight = hardwareMap.get(Servo.class, "outtakeArmRight");
         outtakeArmRight.scaleRange(0, 1);
-        outtakeArmRight.setPosition(0.5);
+        outtakeArmRight.setPosition(armMidPosR);
 
         outtakeArmLeft = hardwareMap.get(Servo.class, "outtakeArmLeft");
         outtakeArmLeft.scaleRange(0, 1);
-        outtakeArmLeft.setPosition(0.5);
+        outtakeArmLeft.setPosition(armMidPosL);
 
         grabMotorL = hardwareMap.get(DcMotor.class, "grabMotorL");
         grabMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -130,40 +130,47 @@ public class cuddleTeamLeader extends LinearOpMode {
             //ARM MOTOR CODE
             if (gamepad1.dpad_right) {
                 grabMotorL.setTargetPosition(clawHeight);
+                grabMotorR.setTargetPosition(clawHeight);
+                outtakeArmRight.setPosition(0.8);
+                outtakeArmLeft.setPosition(0.2);
+                outtakeWrist.setPosition(0.4);
             } else if (gamepad1.dpad_left) {
                 grabMotorL.setTargetPosition(0);
-            }
-            if (gamepad1.dpad_right) {
-                grabMotorR.setTargetPosition(clawHeight);
-            } else if (gamepad1.dpad_left) {
                 grabMotorR.setTargetPosition(0);
+                outtakeArmRight.setPosition(armMidPosR);
+                outtakeArmLeft.setPosition(armMidPosL);
+                outtakeWrist.setPosition(wristMidPos);
+                claw.setPosition(0);
             }
 
             //two bar code
-            if (gamepad1.right_trigger > 0.25) {
-                twoBarL.setPosition(twoBarL.getPosition() - 0.05*gamepad1.right_trigger);
-                twoBarR.setPosition(twoBarR.getPosition() + 0.05*gamepad1.right_trigger);
-            } else if (gamepad1.left_trigger > 0.25) {
-                twoBarL.setPosition(twoBarL.getPosition() + 0.05*gamepad1.left_trigger);
-                twoBarR.setPosition(twoBarR.getPosition() - 0.05*gamepad1.left_trigger);
+            if (gamepad1.right_trigger > 0.1) {
+                twoBarL.setPosition(twoBarL.getPosition() - 0.07*gamepad1.right_trigger);
+                twoBarR.setPosition(twoBarR.getPosition() + 0.07*gamepad1.right_trigger);
+            } else if (gamepad1.left_trigger > 0.1) {
+                twoBarL.setPosition(twoBarL.getPosition() + 0.07*gamepad1.left_trigger);
+                twoBarR.setPosition(twoBarR.getPosition() - 0.07*gamepad1.left_trigger);
             }
 
 
             // potential specimen code
             if (gamepad1.x) {
-                grabMotorL.setTargetPosition(100);
-                grabMotorR.setTargetPosition(100);
-                outtakeArmRight.setPosition(0);
-                outtakeArmLeft.setPosition(1);
-                outtakeWrist.setPosition(0.8);
-            }
-            if (gamepad1.left_stick_button) {
                 grabMotorL.setTargetPosition(500);
                 grabMotorR.setTargetPosition(500);
+            }
+            if (gamepad1.left_stick_button) {
+                grabMotorL.setTargetPosition(100);
+                grabMotorR.setTargetPosition(100);
+                outtakeArmRight.setPosition(0.8);
+                outtakeArmLeft.setPosition(0.2);
+                outtakeWrist.setPosition(0.4);
             }
             if (gamepad1.right_stick_button) {
                 grabMotorL.setTargetPosition(700);
                 grabMotorR.setTargetPosition(700);
+                outtakeArmRight.setPosition(0.2);
+                outtakeArmLeft.setPosition(0.8);
+                outtakeWrist.setPosition(0.2);
             }
 
             // ARM TOGGLE: Start or reset sequence
