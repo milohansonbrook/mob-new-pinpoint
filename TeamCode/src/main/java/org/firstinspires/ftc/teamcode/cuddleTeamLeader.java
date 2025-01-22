@@ -26,8 +26,8 @@ public class cuddleTeamLeader extends LinearOpMode {
     DcMotor grabMotorR;
     public static double slurpLowerBound = 0.21;
     public static double slurpUpperBound = 0.4;
-    public static int clawHeight = 1000;
-    public static double armMidPosL = 0.59;
+    public static int clawHeight = 860;
+    public static double armMidPosL = 0.56;
     public static double armMidPosR = (1 - armMidPosL);
     public static double wristMidPos = 0.5;
     boolean intakeDown;
@@ -74,14 +74,14 @@ public class cuddleTeamLeader extends LinearOpMode {
         grabMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         grabMotorL.setTargetPosition(0);
         grabMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        grabMotorL.setPower(1);
+        grabMotorL.setPower(0.5);
 
         grabMotorR = hardwareMap.get(DcMotor.class, "grabMotorR");
         grabMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         grabMotorR.setDirection(DcMotorSimple.Direction.REVERSE);
         grabMotorR.setTargetPosition(0);
         grabMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        grabMotorR.setPower(1);
+        grabMotorR.setPower(0.5);
 
         claw = hardwareMap.get(Servo.class, "claw");
         claw.scaleRange(0.525, 0.64);
@@ -127,22 +127,6 @@ public class cuddleTeamLeader extends LinearOpMode {
             }
             yLast = gamepad1.y;
 
-            //ARM MOTOR CODE
-            if (gamepad1.dpad_right) {
-                grabMotorL.setTargetPosition(clawHeight);
-                grabMotorR.setTargetPosition(clawHeight);
-                outtakeArmRight.setPosition(0.8);
-                outtakeArmLeft.setPosition(0.2);
-                outtakeWrist.setPosition(0.4);
-            } else if (gamepad1.dpad_left) {
-                grabMotorL.setTargetPosition(0);
-                grabMotorR.setTargetPosition(0);
-                outtakeArmRight.setPosition(armMidPosR);
-                outtakeArmLeft.setPosition(armMidPosL);
-                outtakeWrist.setPosition(wristMidPos);
-                claw.setPosition(0);
-            }
-
             //two bar code
             if (gamepad1.right_trigger > 0.1) {
                 twoBarL.setPosition(twoBarL.getPosition() - 0.04*gamepad1.right_trigger);
@@ -152,25 +136,41 @@ public class cuddleTeamLeader extends LinearOpMode {
                 twoBarR.setPosition(twoBarR.getPosition() - 0.04*gamepad1.left_trigger);
             }
 
+            //ARM MOTOR CODE
+            if (gamepad1.dpad_right) {
+                grabMotorL.setTargetPosition(clawHeight);
+                grabMotorR.setTargetPosition(clawHeight);
+            } else if (gamepad1.dpad_left) {
+                grabMotorL.setTargetPosition(0);
+                grabMotorR.setTargetPosition(0);
+                outtakeArmRight.setPosition(armMidPosR);
+                outtakeArmLeft.setPosition(armMidPosL);
+                outtakeWrist.setPosition(wristMidPos);
+                claw.setPosition(0);
+            } else if (gamepad1.guide) {
+                outtakeArmRight.setPosition(1);
+                outtakeArmLeft.setPosition(0);
+                outtakeWrist.setPosition(0.85);
+            }
 
             // potential specimen code
             if (gamepad1.x) {
-                grabMotorL.setTargetPosition(500);
-                grabMotorR.setTargetPosition(500);
+                grabMotorL.setTargetPosition(325);
+                grabMotorR.setTargetPosition(325);
             }
             if (gamepad1.left_stick_button) {
-                grabMotorL.setTargetPosition(100);
-                grabMotorR.setTargetPosition(100);
-                outtakeArmRight.setPosition(0.8);
-                outtakeArmLeft.setPosition(0.2);
-                outtakeWrist.setPosition(0.4);
+                grabMotorL.setTargetPosition(0);
+                grabMotorR.setTargetPosition(0);
+                outtakeArmRight.setPosition(0.75);
+                outtakeArmLeft.setPosition(0.25);
+                outtakeWrist.setPosition(0.75);
             }
             if (gamepad1.right_stick_button) {
-                grabMotorL.setTargetPosition(700);
-                grabMotorR.setTargetPosition(700);
+                grabMotorL.setTargetPosition(650);
+                grabMotorR.setTargetPosition(650);
                 outtakeArmRight.setPosition(0.2);
                 outtakeArmLeft.setPosition(0.8);
-                outtakeWrist.setPosition(0.2);
+                outtakeWrist.setPosition(0.4);
             }
 
             // ARM TOGGLE: Start or reset sequence
