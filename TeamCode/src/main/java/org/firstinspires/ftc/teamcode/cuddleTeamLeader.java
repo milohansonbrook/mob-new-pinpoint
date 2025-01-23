@@ -24,10 +24,10 @@ public class cuddleTeamLeader extends LinearOpMode {
     CRServo slurp;
     DcMotor grabMotorL;
     DcMotor grabMotorR;
-    public static double slurpLowerBound = 0.21;
+    public static double slurpLowerBound = 0.195;
     public static double slurpUpperBound = 0.4;
     public static int clawHeight = 860;
-    public static double armMidPosL = 0.56;
+    public static double armMidPosL = 0.81;
     public static double armMidPosR = (1 - armMidPosL);
     public static double wristMidPos = 0.5;
     boolean intakeDown;
@@ -150,7 +150,7 @@ public class cuddleTeamLeader extends LinearOpMode {
             } else if (gamepad1.guide) {
                 outtakeArmRight.setPosition(1);
                 outtakeArmLeft.setPosition(0);
-                outtakeWrist.setPosition(0.85);
+                outtakeWrist.setPosition(0.65);
             }
 
             // potential specimen code
@@ -161,16 +161,17 @@ public class cuddleTeamLeader extends LinearOpMode {
             if (gamepad1.left_stick_button) {
                 grabMotorL.setTargetPosition(0);
                 grabMotorR.setTargetPosition(0);
-                outtakeArmRight.setPosition(0.75);
-                outtakeArmLeft.setPosition(0.25);
+                outtakeArmRight.setPosition(0.55);
+                outtakeArmLeft.setPosition(0.45);
                 outtakeWrist.setPosition(0.75);
             }
             if (gamepad1.right_stick_button) {
                 grabMotorL.setTargetPosition(650);
                 grabMotorR.setTargetPosition(650);
-                outtakeArmRight.setPosition(0.2);
-                outtakeArmLeft.setPosition(0.8);
+                outtakeArmRight.setPosition(armMidPosR - 0.24);
+                outtakeArmLeft.setPosition(armMidPosL + 0.24);
                 outtakeWrist.setPosition(0.4);
+
             }
 
             // ARM TOGGLE: Start or reset sequence
@@ -205,7 +206,8 @@ public class cuddleTeamLeader extends LinearOpMode {
                 switch (armSequenceStep) {
                     case 0:
                         intakeDown = false;
-                        jiggle = true;
+                        twoBarR.setPosition(0);
+                        twoBarL.setPosition(1);
                         slurp.setPower(-1);
                         if (elapsedTime >= 500) {
                             armSequenceStep++;
@@ -213,8 +215,9 @@ public class cuddleTeamLeader extends LinearOpMode {
                         }
                         break;
                     case 1:
+
+                        //slurping.... FLIP UP, GO in,
                         intakeDown = false;
-                        jiggle = false;
                         if (elapsedTime >= 700) {
                             armSequenceStep++;
                             sequenceStartTime = System.currentTimeMillis();
@@ -222,8 +225,8 @@ public class cuddleTeamLeader extends LinearOpMode {
                         break;
 
                     case 2:
+                        //closing claw
                         intakeDown = false;
-                        jiggle = true;
                         grabMotorL.setTargetPosition(0);
                         grabMotorR.setTargetPosition(0);
                         if (elapsedTime >= 500) {
@@ -232,14 +235,13 @@ public class cuddleTeamLeader extends LinearOpMode {
                         }
                         break;
                     case 3:
-                        jiggle = true;
+
                         if (elapsedTime >= 250) {
                             armSequenceStep++;
                             sequenceStartTime = System.currentTimeMillis();
                         }
                         break;
                     case 4:
-                        jiggle = true;
                         clawState = false;
                         slurp.setPower(0);
                         if (elapsedTime >= 500) {
