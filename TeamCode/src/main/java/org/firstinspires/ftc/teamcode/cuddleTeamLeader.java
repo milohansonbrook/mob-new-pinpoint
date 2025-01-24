@@ -262,7 +262,7 @@ public class cuddleTeamLeader extends LinearOpMode {
                         slurp.setPower(-1);
                         grabMotorL.setTargetPosition(0);
                         grabMotorR.setTargetPosition(0);
-                        if (elapsedTime >= 1500) {
+                        if (elapsedTime >= 1250) {
                             armSequenceStep++;
                             sequenceStartTime = System.currentTimeMillis();
                         }
@@ -290,7 +290,7 @@ public class cuddleTeamLeader extends LinearOpMode {
                     case 3:
                         outtakeArmRight.setPosition(1);
                         outtakeArmLeft.setPosition(0);
-                        outtakeWrist.setPosition(0.65);
+                        outtakeWrist.setPosition(0.55);
                         armSequenceComplete = true;
                         armSequenceActive = false;
                         if (elapsedTime >= 250) {
