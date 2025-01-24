@@ -35,10 +35,17 @@ public class cuddleTeamLeader extends LinearOpMode {
     boolean clawState;
     boolean armSequenceActive;
     boolean armSequenceComplete;
+    boolean sampleSeqActive;
+    boolean sampleSeqComplete;
     boolean yLast;
     boolean jiggle;
+    boolean b2Last;
+    boolean halfSpeed;
+    double drivePower;
     long sequenceStartTime = 0;
+    long sampleSeqStartTime = 0;
     int armSequenceStep = 0;
+    int sampleSeqStep = 0;
     private Follower follower;
     private final Pose startPose = new Pose(0,0,0);
 
@@ -93,11 +100,19 @@ public class cuddleTeamLeader extends LinearOpMode {
         follower = new Follower(hardwareMap);
         follower.setStartingPose(startPose);
 
+        halfSpeed = false;
+
         waitForStart();
         follower.startTeleopDrive();
         while (opModeIsActive()) {
 
-            follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
+            if (gamepad2.b && !b2Last) {
+                halfSpeed = !halfSpeed;
+            }
+            drivePower = halfSpeed ? 0.25 : 1;
+            b2Last = gamepad2.b;
+
+            follower.setTeleOpMovementVectors(-gamepad2.left_stick_y * drivePower, -gamepad2.left_stick_x * drivePower, -gamepad2.right_stick_x * drivePower, true);
             follower.update();
 
             /* Telemetry Outputs of our Follower */
@@ -105,7 +120,7 @@ public class cuddleTeamLeader extends LinearOpMode {
             telemetry.addData("Y", follower.getPose().getY());
             telemetry.addData("Heading in Degrees", Math.toDegrees(follower.getPose().getHeading()));
 
-            // SLURPY
+// SLURPY___________________________________________________________________________________________
             if (gamepad1.right_bumper) {
                 slurp.setPower(1);
             } else if (gamepad1.left_bumper) {
@@ -127,7 +142,7 @@ public class cuddleTeamLeader extends LinearOpMode {
             }
             yLast = gamepad1.y;
 
-            //two bar code
+//two bar code______________________________________________________________________________________
             if (gamepad1.right_trigger > 0.1) {
                 twoBarL.setPosition(twoBarL.getPosition() - 0.04*gamepad1.right_trigger);
                 twoBarR.setPosition(twoBarR.getPosition() + 0.04*gamepad1.right_trigger);
@@ -135,43 +150,88 @@ public class cuddleTeamLeader extends LinearOpMode {
                 twoBarL.setPosition(twoBarL.getPosition() + 0.04*gamepad1.left_trigger);
                 twoBarR.setPosition(twoBarR.getPosition() - 0.04*gamepad1.left_trigger);
             }
+//Free Buttons______________________________________________________________________________________
+            if (gamepad1.guide) {
 
-            //ARM MOTOR CODE
-            if (gamepad1.dpad_right) {
-                grabMotorL.setTargetPosition(clawHeight);
-                grabMotorR.setTargetPosition(clawHeight);
-            } else if (gamepad1.dpad_left) {
-                grabMotorL.setTargetPosition(0);
-                grabMotorR.setTargetPosition(0);
-                outtakeArmRight.setPosition(armMidPosR);
-                outtakeArmLeft.setPosition(armMidPosL);
-                outtakeWrist.setPosition(wristMidPos);
-                claw.setPosition(0);
-            } else if (gamepad1.guide) {
-                outtakeArmRight.setPosition(1);
-                outtakeArmLeft.setPosition(0);
-                outtakeWrist.setPosition(0.65);
             }
+            if (gamepad1.right_stick_button) {
 
-            // potential specimen code
-            if (gamepad1.x) {
-                grabMotorL.setTargetPosition(325);
-                grabMotorR.setTargetPosition(325);
             }
             if (gamepad1.left_stick_button) {
+
+            }
+//specimen code_____________________________________________________________________________________
+            if (gamepad1.x) {
+                grabMotorL.setTargetPosition(650);
+                grabMotorR.setTargetPosition(650);
+            }
+
+            // Specimen sequence code
+            if (gamepad1.dpad_left) {
+                sampleSeqActive = false;
+                sampleSeqComplete = true;
+                clawState = true;
+                sampleSeqStep = 0;
                 grabMotorL.setTargetPosition(0);
                 grabMotorR.setTargetPosition(0);
                 outtakeArmRight.setPosition(0.55);
                 outtakeArmLeft.setPosition(0.45);
                 outtakeWrist.setPosition(0.75);
             }
-            if (gamepad1.right_stick_button) {
-                grabMotorL.setTargetPosition(650);
-                grabMotorR.setTargetPosition(650);
-                outtakeArmRight.setPosition(armMidPosR - 0.24);
-                outtakeArmLeft.setPosition(armMidPosL + 0.24);
-                outtakeWrist.setPosition(0.4);
+            if (gamepad1.dpad_right) {
+                sampleSeqActive = true;
+                sampleSeqComplete = false;
+                clawState = false;
+                sampleSeqStep = 0;
+                sampleSeqStartTime = System.currentTimeMillis();
+            }
 
+            //execute sample sequence
+            if (sampleSeqActive && !sampleSeqComplete) {
+                long sampleElapsedTime = System.currentTimeMillis() - sequenceStartTime;
+                switch (sampleSeqStep) {
+                    case 0:
+                        clawState = false;
+                        if (sampleElapsedTime >= 300){
+                            sampleSeqStep++;
+                            sequenceStartTime = System.currentTimeMillis();
+                        }
+                        break;
+
+                    case 1:
+                        grabMotorL.setTargetPosition(375);
+                        grabMotorR.setTargetPosition(375);
+                        if (sampleElapsedTime >= 500){
+                            sampleSeqStep++;
+                            sequenceStartTime = System.currentTimeMillis();
+                        }
+                        break;
+
+                    case 2:
+                        outtakeArmRight.setPosition(armMidPosR - 0.24);
+                        outtakeArmLeft.setPosition(armMidPosL + 0.24);
+                        outtakeWrist.setPosition(0.35);
+                        armSequenceComplete = true;
+                        armSequenceActive = false;
+                        break;
+                }
+            }
+
+// ARM SEQUENCE CODE________________________________________________________________________________
+            if (gamepad1.dpad_down) {
+                armSequenceActive = false;
+                armSequenceComplete = true;
+                sampleSeqActive = false;
+                sampleSeqComplete = true;
+                clawState = true;
+                armSequenceStep = 0;
+                intakeRight.setPosition(1);
+                outtakeArmRight.setPosition(armMidPosR);
+                outtakeArmLeft.setPosition(armMidPosL);
+                outtakeWrist.setPosition(wristMidPos);
+                grabMotorL.setTargetPosition(0);
+                grabMotorR.setTargetPosition(0);
+                claw.setPosition(0);
             }
 
             // ARM TOGGLE: Start or reset sequence
@@ -188,62 +248,57 @@ public class cuddleTeamLeader extends LinearOpMode {
                 slurp.setPower(1);
                 sequenceStartTime = System.currentTimeMillis();
             }
-            if (gamepad1.dpad_down) {
-                armSequenceActive = false;
-                armSequenceComplete = true;
-                clawState = true;
-                armSequenceStep = 0;
-                intakeRight.setPosition(1);
-                outtakeArmRight.setPosition(armMidPosR);
-                outtakeArmLeft.setPosition(armMidPosL);
-                outtakeWrist.setPosition(wristMidPos);
-                claw.setPosition(0);
-            }
 
             // Execute arm sequence
             if (armSequenceActive && !armSequenceComplete) {
                 long elapsedTime = System.currentTimeMillis() - sequenceStartTime;
                 switch (armSequenceStep) {
                     case 0:
+
+                        //slurping.... FLIP UP, GO in,
                         intakeDown = false;
                         twoBarR.setPosition(0);
                         twoBarL.setPosition(1);
+                        slurp.setPower(-1);
+                        grabMotorL.setTargetPosition(0);
+                        grabMotorR.setTargetPosition(0);
+                        if (elapsedTime >= 1500) {
+                            armSequenceStep++;
+                            sequenceStartTime = System.currentTimeMillis();
+                        }
+                        break;
+
+                    case 1:
+                        //closing claw
+                        clawState = false;
                         slurp.setPower(-1);
                         if (elapsedTime >= 500) {
                             armSequenceStep++;
                             sequenceStartTime = System.currentTimeMillis();
                         }
                         break;
-                    case 1:
-
-                        //slurping.... FLIP UP, GO in,
-                        intakeDown = false;
-                        if (elapsedTime >= 700) {
-                            armSequenceStep++;
-                            sequenceStartTime = System.currentTimeMillis();
-                        }
-                        break;
 
                     case 2:
-                        //closing claw
-                        intakeDown = false;
-                        grabMotorL.setTargetPosition(0);
-                        grabMotorR.setTargetPosition(0);
-                        if (elapsedTime >= 500) {
+                        slurp.setPower(0);
+                        grabMotorL.setTargetPosition(clawHeight);
+                        grabMotorR.setTargetPosition(clawHeight);
+                        if (elapsedTime >= 750) {
                             armSequenceStep++;
                             sequenceStartTime = System.currentTimeMillis();
                         }
                         break;
                     case 3:
-
+                        outtakeArmRight.setPosition(1);
+                        outtakeArmLeft.setPosition(0);
+                        outtakeWrist.setPosition(0.65);
+                        armSequenceComplete = true;
+                        armSequenceActive = false;
                         if (elapsedTime >= 250) {
                             armSequenceStep++;
                             sequenceStartTime = System.currentTimeMillis();
                         }
                         break;
                     case 4:
-                        clawState = false;
-                        slurp.setPower(0);
                         if (elapsedTime >= 500) {
                             armSequenceStep++;
                             sequenceStartTime = System.currentTimeMillis();
@@ -251,26 +306,20 @@ public class cuddleTeamLeader extends LinearOpMode {
                         break;
 
                     case 5:
-                        outtakeArmRight.setPosition(1);
-                        outtakeArmLeft.setPosition(0);
-                        outtakeWrist.setPosition(0);
-                        armSequenceComplete = true;
-                        armSequenceActive = false;
                         break;
                 }
             }
 
+//__________________________________________________________________________________________________
+
             if (clawState) claw.setPosition(0);
             else claw.setPosition(1);
 
+            //JIGGLE CODE
             if (intakeDown && !jiggle) intakeRight.setPosition(0);
             else if (intakeDown && jiggle) intakeRight.setPosition(0.3);
             else if (!intakeDown && !jiggle) intakeRight.setPosition(1);
             else intakeRight.setPosition(0.5);
-
-            double forward = gamepad2.left_stick_y;   // Forward/backward movement
-            double strafe = gamepad2.left_stick_x;     // Left/right movement
-            double rotate = gamepad2.right_stick_x;    // Rotation (turning)
 
             // Add telemetry for debugging
             telemetry.addData("Left grab motor pos", grabMotorL.getCurrentPosition());
