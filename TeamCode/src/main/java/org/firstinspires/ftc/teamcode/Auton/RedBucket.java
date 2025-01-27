@@ -23,9 +23,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
-@Autonomous(name = "RedClip", group = "Autonomous")
+@Autonomous(name = "RedBucket", group = "Autonomous")
 @Config
-public class RedClip extends OpMode {
+public class RedBucket extends OpMode {
 
     Servo intakeRight;
     Servo claw;
@@ -62,8 +62,8 @@ public class RedClip extends OpMode {
 
     int pathState = 0;
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
-    private final Pose clipPose = new Pose(0, 0, Math.toRadians(0));
-    private final Pose nPose = new Pose(0, -18, Math.toRadians(0));
+    private final Pose clipPose = new Pose(24, 26, Math.toRadians(-45));
+    private final Pose nPose = new Pose(13.7, 37.8, Math.toRadians(-45));
 
     // Starting position
 //    private final Pose scorePose = new Pose(14, 129, Math.toRadians(315)); // Scoring position
@@ -206,30 +206,31 @@ public class RedClip extends OpMode {
 //        park.setLinearHeadingInterpolation(scorePose.getHeading(), parkPose.getHeading());
     }
 
-        public void autonomousPathUpdate() {
-            switch (pathState) {
-                case 0: // Move from start to scoring position
-//                    intakeRight.setPosition(0.45);
-                    follower.followPath(next, true);
-//                    grabMotorL.setTargetPosition(375);
-//                    grabMotorR.setTargetPosition(375);
-//                    outtakeArmRight.setPosition(armMidPosR - 0.2);
-//                    outtakeArmLeft.setPosition(armMidPosL + 0.2);
+    public void autonomousPathUpdate() {
+        switch (pathState) {
+            case 0: // Move from start to scoring position
+                    intakeRight.setPosition(0.45);
+                    follower.followPath(grabPickup1, true);
+                    outtakeArmRight.setPosition(0.5);
+                    outtakeArmLeft.setPosition(0.5);
 //                    outtakeWrist.setPosition(0.35);
-//                    setPathState(1);
-                    break;
+                    setPathState(1);
+                break;
 
-//                case 1:
-//                    if (!follower.isBusy()) {
-//                        setPathState(2);
-//                    }
-//
-//                case 2: // Wait until the robot is near the first sample pickup position
-//                    if (pathTimer.getElapsedTime() > 2000) {
-//                        //follower.followPath(next, true);
-//                        setPathState(3);
-//                    }
-//                    break;
+            case 1:
+                if (!follower.isBusy()) {
+                    setPathState(2);
+                    grabMotorL.setTargetPosition(375);
+                    grabMotorR.setTargetPosition(375);
+                }
+                break;
+
+            case 2: // Wait until the robot is near the first sample pickup position
+                if (pathTimer.getElapsedTime() > 2000) {
+                    follower.followPath(next, true);
+                    setPathState(3);
+                }
+                break;
 
 //            case 2: // Wait until the robot is near the first sample pickup position
 //                if (!follower.isBusy()) {
@@ -278,10 +279,11 @@ public class RedClip extends OpMode {
 //                    setPathState(-1); // End the autonomous routine
 //                }
 //                break;
-            }
         }
-        public void setPathState (int pState){
-            pathState = pState;
-            pathTimer.resetTimer();
-        }
+    }
+    public void setPathState (int pState){
+        pathState = pState;
+        pathTimer.resetTimer();
+    }
 }
+

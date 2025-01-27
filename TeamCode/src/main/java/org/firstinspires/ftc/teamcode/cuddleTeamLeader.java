@@ -25,7 +25,7 @@ public class cuddleTeamLeader extends LinearOpMode {
     CRServo slurp;
     DcMotor grabMotorL;
     DcMotor grabMotorR;
-    public static double slurpLowerBound = 0.195;
+    public static double slurpLowerBound = 0.21;
     public static double slurpUpperBound = 0.4;
     public static int clawHeight = 860;
     public static double armMidPosL = 0.81;
@@ -92,6 +92,7 @@ public class cuddleTeamLeader extends LinearOpMode {
         grabMotorR.setPower(0.5);
 
         claw = hardwareMap.get(Servo.class, "claw");
+        claw.setDirection(Servo.Direction.REVERSE);
         claw.scaleRange(0.525, 0.64);
         claw.setPosition(0);
 

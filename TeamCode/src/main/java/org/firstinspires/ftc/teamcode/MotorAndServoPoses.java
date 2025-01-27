@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
 import com.pedropathing.util.Constants;
@@ -9,6 +11,8 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
@@ -47,13 +51,14 @@ public class MotorAndServoPoses extends LinearOpMode {
     long sampleSeqStartTime = 0;
     int armSequenceStep = 0;
     int sampleSeqStep = 0;
+    private Telemetry telemetry;
     private Follower follower;
     private final Pose startPose = new Pose(0,0,0);
 
 
     @Override
     public void runOpMode() throws InterruptedException {
-        clawState = true;
+        telemetry = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
 
         intakeRight = hardwareMap.get(Servo.class, "intakeRight");
         intakeRight.scaleRange(slurpLowerBound, slurpUpperBound);
@@ -98,17 +103,16 @@ public class MotorAndServoPoses extends LinearOpMode {
 
         slurp = hardwareMap.get(CRServo.class, "slurp");
 
+
         Constants.setConstants(FConstants.class, LConstants.class);
         follower = new Follower(hardwareMap);
         follower.setStartingPose(startPose);
 
-        halfSpeed = false;
 
         waitForStart();
         follower.startTeleopDrive();
         while (opModeIsActive()) {
             follower.update();
-
             telemetry.addData("inTakeRight", intakeRight.getPosition());
             telemetry.addData("Claw", claw.getPosition());
             telemetry.addData("outtakeWrist", outtakeWrist.getPosition());
