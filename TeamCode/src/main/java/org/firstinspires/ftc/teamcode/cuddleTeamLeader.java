@@ -349,9 +349,9 @@ public class cuddleTeamLeader extends LinearOpMode {
 
             //JIGGLE CODE
             if (intakeDown && !jiggle) intakeRight.setPosition(0);
-            else if (intakeDown && jiggle) intakeRight.setPosition(0.3);
+            else if (intakeDown && jiggle) intakeRight.setPosition(0.5);
             else if (!intakeDown && !jiggle) intakeRight.setPosition(1);
-            else intakeRight.setPosition(0.5);
+            else intakeRight.setPosition(1);
 
 // Add telemetry for debugging______________________________________________________________________________________________________________________________________________________________________________________________________________
             telemetry.addData("Left grab motor pos", grabMotorL.getCurrentPosition());
