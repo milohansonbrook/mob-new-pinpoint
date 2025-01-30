@@ -44,7 +44,7 @@ public class soloSmacker extends LinearOpMode {
     boolean specimenSequenceComplete;
     boolean yLast;
     boolean jiggle;
-    boolean b2Last;
+    boolean stickB1Last;
     boolean halfSpeed;
     double drivePower;
     long sampleSequenceStartTime = 0;
@@ -113,13 +113,13 @@ public class soloSmacker extends LinearOpMode {
         follower.startTeleopDrive();
         while (opModeIsActive()) {
 
-            if (gamepad2.b && !b2Last) {
+            if (gamepad1.left_stick_button && !stickB1Last) {
                 halfSpeed = !halfSpeed;
             }
             drivePower = halfSpeed ? 0.25 : 1;
-            b2Last = gamepad2.b;
+            stickB1Last= gamepad1.left_stick_button;
 
-            follower.setTeleOpMovementVectors(-gamepad2.left_stick_y * drivePower, -gamepad2.left_stick_x * drivePower, -gamepad2.right_stick_x * drivePower, true);
+            follower.setTeleOpMovementVectors(-gamepad1.left_stick_y * drivePower, -gamepad1.left_stick_x * drivePower, -gamepad1.right_stick_x * drivePower, true);
             follower.update();
 
             /* Telemetry Outputs of our Follower */
