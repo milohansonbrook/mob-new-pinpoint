@@ -64,11 +64,11 @@ public class soloSmacker extends LinearOpMode {
         turnSlurp.setPosition(1);
 
         twoBarL = hardwareMap.get(Servo.class, "twoBarL");
-        twoBarL.scaleRange(0.425, 0.69);
+        twoBarL.scaleRange(0.425, 0.72);
         twoBarL.setPosition(1);
 
         twoBarR = hardwareMap.get(Servo.class, "twoBarR");
-        twoBarR.scaleRange(0.31, 0.575);
+        twoBarR.scaleRange(0.29, 0.585);
         twoBarR.setPosition(0);
 
         turnClaw = hardwareMap.get(Servo.class, "turnClaw");
