@@ -15,11 +15,11 @@ import pedroPathing.constants.LConstants;
 @TeleOp
 @Config
 public class cuddleTeamLeader extends LinearOpMode {
-    Servo intakeRight;
+    Servo turnSlurp;
     Servo claw;
-    Servo outtakeWrist;
-    Servo outtakeArmRight;
-    Servo outtakeArmLeft;
+    Servo turnClaw;
+    Servo rShoulder;
+    Servo lShoulder;
     Servo twoBarR;
     Servo twoBarL;
     CRServo slurp;
@@ -54,9 +54,9 @@ public class cuddleTeamLeader extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         clawState = true;
 
-        intakeRight = hardwareMap.get(Servo.class, "intakeRight");
-        intakeRight.scaleRange(slurpLowerBound, slurpUpperBound);
-        intakeRight.setPosition(1);
+        turnSlurp = hardwareMap.get(Servo.class, "turnSlurp");
+        turnSlurp.scaleRange(slurpLowerBound, slurpUpperBound);
+        turnSlurp.setPosition(1);
 
         twoBarL = hardwareMap.get(Servo.class, "twoBarL");
         twoBarL.scaleRange(0.425, 0.69);
@@ -66,17 +66,17 @@ public class cuddleTeamLeader extends LinearOpMode {
         twoBarR.scaleRange(0.31, 0.575);
         twoBarR.setPosition(0);
 
-        outtakeWrist = hardwareMap.get(Servo.class, "outtakeWrist");
-        outtakeWrist.scaleRange(0, 1);
-        outtakeWrist.setPosition(wristMidPos);
+        turnClaw = hardwareMap.get(Servo.class, "turnClaw");
+        turnClaw.scaleRange(0, 1);
+        turnClaw.setPosition(wristMidPos);
 
-        outtakeArmRight = hardwareMap.get(Servo.class, "outtakeArmRight");
-        outtakeArmRight.scaleRange(0, 1);
-        outtakeArmRight.setPosition(armMidPosR);
+        rShoulder = hardwareMap.get(Servo.class, "rShoulder");
+        rShoulder.scaleRange(0, 1);
+        rShoulder.setPosition(armMidPosR);
 
-        outtakeArmLeft = hardwareMap.get(Servo.class, "outtakeArmLeft");
-        outtakeArmLeft.scaleRange(0, 1);
-        outtakeArmLeft.setPosition(armMidPosL);
+        lShoulder = hardwareMap.get(Servo.class, "lShoulder");
+        lShoulder.scaleRange(0, 1);
+        lShoulder.setPosition(armMidPosL);
 
         grabMotorL = hardwareMap.get(DcMotor.class, "grabMotorL");
         grabMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -175,9 +175,9 @@ public class cuddleTeamLeader extends LinearOpMode {
                 sampleSeqStep = 0;
                 grabMotorL.setTargetPosition(0);
                 grabMotorR.setTargetPosition(0);
-                outtakeArmRight.setPosition(0.55);
-                outtakeArmLeft.setPosition(0.45);
-                outtakeWrist.setPosition(0.75);
+                rShoulder.setPosition(0.55);
+                lShoulder.setPosition(0.45);
+                turnClaw.setPosition(0.75);
             }
             if (gamepad1.dpad_right) {
                 sampleSeqActive = true;
@@ -209,9 +209,9 @@ public class cuddleTeamLeader extends LinearOpMode {
                         break;
 
                     case 2:
-                        outtakeArmRight.setPosition(armMidPosR - 0.24);
-                        outtakeArmLeft.setPosition(armMidPosL + 0.24);
-                        outtakeWrist.setPosition(0.35);
+                        rShoulder.setPosition(armMidPosR - 0.24);
+                        lShoulder.setPosition(armMidPosL + 0.24);
+                        turnClaw.setPosition(0.35);
                         armSequenceComplete = true;
                         armSequenceActive = false;
                         break;
@@ -226,10 +226,10 @@ public class cuddleTeamLeader extends LinearOpMode {
                 sampleSeqComplete = true;
                 clawState = true;
                 armSequenceStep = 0;
-                intakeRight.setPosition(1);
-                outtakeArmRight.setPosition(armMidPosR);
-                outtakeArmLeft.setPosition(armMidPosL);
-                outtakeWrist.setPosition(wristMidPos);
+                turnSlurp.setPosition(1);
+                rShoulder.setPosition(armMidPosR);
+                lShoulder.setPosition(armMidPosL);
+                turnClaw.setPosition(wristMidPos);
                 grabMotorL.setTargetPosition(0);
                 grabMotorR.setTargetPosition(0);
                 claw.setPosition(0);
@@ -241,10 +241,10 @@ public class cuddleTeamLeader extends LinearOpMode {
                 armSequenceComplete = false;
                 clawState = true;
                 armSequenceStep = 0;
-                intakeRight.setPosition(1);
-                outtakeArmRight.setPosition(armMidPosR);
-                outtakeArmLeft.setPosition(armMidPosL);
-                outtakeWrist.setPosition(wristMidPos);
+                turnSlurp.setPosition(1);
+                rShoulder.setPosition(armMidPosR);
+                lShoulder.setPosition(armMidPosL);
+                turnClaw.setPosition(wristMidPos);
                 claw.setPosition(0);
                 slurp.setPower(1);
                 sequenceStartTime = System.currentTimeMillis();
@@ -289,9 +289,9 @@ public class cuddleTeamLeader extends LinearOpMode {
                         }
                         break;
                     case 3:
-                        outtakeArmRight.setPosition(1);
-                        outtakeArmLeft.setPosition(0);
-                        outtakeWrist.setPosition(0.55);
+                        rShoulder.setPosition(1);
+                        lShoulder.setPosition(0);
+                        turnClaw.setPosition(0.55);
                         armSequenceComplete = true;
                         armSequenceActive = false;
                         if (elapsedTime >= 250) {
@@ -317,10 +317,10 @@ public class cuddleTeamLeader extends LinearOpMode {
             else claw.setPosition(1);
 
             //JIGGLE CODE
-            if (intakeDown && !jiggle) intakeRight.setPosition(0);
-            else if (intakeDown && jiggle) intakeRight.setPosition(0.3);
-            else if (!intakeDown && !jiggle) intakeRight.setPosition(1);
-            else intakeRight.setPosition(0.5);
+            if (intakeDown && !jiggle) turnSlurp.setPosition(0);
+            else if (intakeDown && jiggle) turnSlurp.setPosition(0.3);
+            else if (!intakeDown && !jiggle) turnSlurp.setPosition(1);
+            else turnSlurp.setPosition(0.5);
 
             // Add telemetry for debugging
             telemetry.addData("Left grab motor pos", grabMotorL.getCurrentPosition());
