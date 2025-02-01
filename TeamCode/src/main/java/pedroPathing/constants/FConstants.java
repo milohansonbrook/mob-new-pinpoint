@@ -24,22 +24,22 @@ public class FConstants {
 
         FollowerConstants.mass = 9.07185;
 
-        FollowerConstants.xMovement = 51.65;
-        FollowerConstants.yMovement = 35.04;
+        FollowerConstants.xMovement = 56.24;
+        FollowerConstants.yMovement = 43.02;
 
         FollowerConstants.forwardZeroPowerAcceleration = -35.7;
-        FollowerConstants.lateralZeroPowerAcceleration = -66.64;
+        FollowerConstants.lateralZeroPowerAcceleration = -63.02;
 
-        FollowerConstants.translationalPIDFCoefficients.setCoefficients(0.07,0,0.008,0);
+        FollowerConstants.translationalPIDFCoefficients.setCoefficients(0.1,0.00001,0.008,0);
         FollowerConstants.useSecondaryTranslationalPID = false;
-        FollowerConstants.secondaryTranslationalPIDFCoefficients.setCoefficients(0,0,0,0); // Not being used, @see useSecondaryTranslationalPID
+        FollowerConstants.secondaryTranslationalPIDFCoefficients.setCoefficients(0.008,0,0,0); // Not being used, @see useSecondaryTranslationalPID
 
         FollowerConstants.headingPIDFCoefficients.setCoefficients(2,0,0.1,0);
-        FollowerConstants.useSecondaryHeadingPID = false;
+        FollowerConstants.useSecondaryHeadingPID = true;
         FollowerConstants.secondaryHeadingPIDFCoefficients.setCoefficients(2,0,0.1,0); // Not being used, @see useSecondaryHeadingPID
 
-        FollowerConstants.drivePIDFCoefficients.setCoefficients(0.1,0,0,0.6,0);
-        FollowerConstants.useSecondaryDrivePID = false;
+        FollowerConstants.drivePIDFCoefficients.setCoefficients(0.02,0,0.0001,0.6,0);
+        FollowerConstants.useSecondaryDrivePID = true;
         FollowerConstants.secondaryDrivePIDFCoefficients.setCoefficients(0.1,0,0,0.6,0); // Not being used, @see useSecondaryDrivePID
 
         FollowerConstants.zeroPowerAccelerationMultiplier = 4;
