@@ -1,5 +1,4 @@
 package pedroPathing.constants;
-
 import com.pedropathing.localization.Localizers;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.util.CustomFilteredPIDFCoefficients;
