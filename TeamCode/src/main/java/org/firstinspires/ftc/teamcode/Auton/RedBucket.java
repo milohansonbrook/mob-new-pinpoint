@@ -23,47 +23,50 @@ import com.qualcomm.robotcore.hardware.Servo;
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
-@Autonomous(name = "RedBucket", group = "Autonomous")
+@Autonomous(name = "AlexBucket", group = "Autonomous")
 @Config
 public class RedBucket extends OpMode {
 
-    Servo intakeRight;
+    Servo turnSlurp;
     Servo claw;
-    Servo outtakeWrist;
-    Servo outtakeArmRight;
-    Servo outtakeArmLeft;
+    Servo turnClaw;
+    Servo rShoulder;
+    Servo lShoulder;
     Servo twoBarR;
     Servo twoBarL;
     CRServo slurp;
     DcMotor grabMotorL;
     DcMotor grabMotorR;
-    public static double slurpLowerBound = 0.195;
-    public static double slurpUpperBound = 0.6;
+
+    public static double slurpLowerBound = 0.21;
+    public static double slurpUpperBound = 0.4;
     public static int clawHeight = 860;
     public static double armMidPosL = 0.81;
     public static double armMidPosR = (1 - armMidPosL);
     public static double wristMidPos = 0.5;
+
     boolean intakeDown;
     boolean aLast;
     boolean clawState;
-    boolean armSequenceActive;
-    boolean armSequenceComplete;
-    boolean sampleSeqActive;
-    boolean sampleSeqComplete;
+    boolean sampleSequenceActive;
+    boolean sampleSequenceComplete;
+    boolean specimenSequenceActive;
+    boolean specimenSequenceComplete;
     boolean yLast;
     boolean jiggle;
-    boolean b2Last;
+    boolean stickB1Last;
     boolean halfSpeed;
     double drivePower;
-    long sequenceStartTime = 0;
-    long sampleSeqStartTime = 0;
-    int armSequenceStep = 0;
-    int sampleSeqStep = 0;
+    long sampleSequenceStartTime = 0;
+    long specimenSequenceStartTime = 0;
+    int sampleSequenceStep = 0;
+    int specimenSequenceStep = 0;
 
-    int pathState = 0;
+
+    String pathState = "init";
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
-    private final Pose clipPose = new Pose(24, 26, Math.toRadians(-45));
-    private final Pose nPose = new Pose(13.7, 37.8, Math.toRadians(-45));
+    private final Pose bucketPose = new Pose(5.6, 21.36, Math.toRadians(-45));
+    private final Pose nPose = new Pose(6.05, 12.67, Math.toRadians(0));
 
     // Starting position
 //    private final Pose scorePose = new Pose(14, 129, Math.toRadians(315)); // Scoring position
@@ -77,7 +80,7 @@ public class RedBucket extends OpMode {
 
     private Follower follower;
     private Path scorePreload, park;
-    private PathChain grabPickup1, next, grabPickup2, grabPickup3, scorePickup1, scorePickup2, scorePickup3;
+    private PathChain bucketDrop, next, grabPickup2, grabPickup3, scorePickup1, scorePickup2, scorePickup3;
     Timer opmodeTimer;
     Timer pathTimer;
 
@@ -85,29 +88,29 @@ public class RedBucket extends OpMode {
     public void init() {
         clawState = true;
 
-        intakeRight = hardwareMap.get(Servo.class, "intakeRight");
-        intakeRight.scaleRange(slurpLowerBound, slurpUpperBound);
-        intakeRight.setPosition(1);
+        turnSlurp = hardwareMap.get(Servo.class, "turnSlurp");
+        turnSlurp.scaleRange(slurpLowerBound, slurpUpperBound);
+        turnSlurp.setPosition(1);
 
         twoBarL = hardwareMap.get(Servo.class, "twoBarL");
-        twoBarL.scaleRange(0.425, 0.69);
+        twoBarL.scaleRange(0.425, 0.72);
         twoBarL.setPosition(1);
 
         twoBarR = hardwareMap.get(Servo.class, "twoBarR");
-        twoBarR.scaleRange(0.31, 0.575);
+        twoBarR.scaleRange(0.29, 0.585);
         twoBarR.setPosition(0);
 
-        outtakeWrist = hardwareMap.get(Servo.class, "outtakeWrist");
-        outtakeWrist.scaleRange(0, 1);
-        outtakeWrist.setPosition(wristMidPos);
+        turnClaw = hardwareMap.get(Servo.class, "turnClaw");
+        turnClaw.scaleRange(0, 1);
+        turnClaw.setPosition(wristMidPos);
 
-        outtakeArmRight = hardwareMap.get(Servo.class, "outtakeArmRight");
-        outtakeArmRight.scaleRange(0, 1);
-        outtakeArmRight.setPosition(armMidPosR);
+        rShoulder = hardwareMap.get(Servo.class, "rShoulder");
+        rShoulder.scaleRange(0, 1);
+        rShoulder.setPosition(armMidPosR);
 
-        outtakeArmLeft = hardwareMap.get(Servo.class, "outtakeArmLeft");
-        outtakeArmLeft.scaleRange(0, 1);
-        outtakeArmLeft.setPosition(armMidPosL);
+        lShoulder = hardwareMap.get(Servo.class, "lShoulder");
+        lShoulder.scaleRange(0, 1);
+        lShoulder.setPosition(armMidPosL);
 
         grabMotorL = hardwareMap.get(DcMotor.class, "grabMotorL");
         grabMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -127,8 +130,6 @@ public class RedBucket extends OpMode {
         claw.setPosition(0);
 
         slurp = hardwareMap.get(CRServo.class, "slurp");
-
-        halfSpeed = false;
 
         pathTimer = new Timer();
         opmodeTimer = new Timer();
@@ -161,22 +162,22 @@ public class RedBucket extends OpMode {
     @Override
     public void start() {
         opmodeTimer.resetTimer();
-        setPathState(0);
+        setPathState("Move to bucket: init");
     }
 
     public void buildPaths() {
         // Path for scoring preload
 //        scorePreload = new Path(new BezierLine(new Point(startPose), new Point(scorePose)));
 //        scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
-        grabPickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(startPose), new Point(clipPose)))
-                .setLinearHeadingInterpolation(startPose.getHeading(), clipPose.getHeading())
+        bucketDrop = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(startPose), new Point(bucketPose)))
+                .setLinearHeadingInterpolation(startPose.getHeading(), bucketPose.getHeading())
                 .build();
 
-        next = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(clipPose), new Point(nPose)))
-                .setLinearHeadingInterpolation(clipPose.getHeading(), nPose.getHeading())
-                .build();
+//        next = follower.pathBuilder()
+//                .addPath(new BezierLine(new Point(clipPose), new Point(nPose)))
+//                .setLinearHeadingInterpolation(clipPose.getHeading(), nPose.getHeading())
+//                .build();
 
 //        scorePickup1 = follower.pathBuilder()
 //                .addPath(new BezierLine(new Point(pickup1Pose), new Point(scorePose)))
@@ -208,27 +209,23 @@ public class RedBucket extends OpMode {
 
     public void autonomousPathUpdate() {
         switch (pathState) {
-            case 0: // Move from start to scoring position
-                    intakeRight.setPosition(0.45);
-                    follower.followPath(grabPickup1, true);
-                    outtakeArmRight.setPosition(0.5);
-                    outtakeArmLeft.setPosition(0.5);
-//                    outtakeWrist.setPosition(0.35);
-                    setPathState(1);
+            case "Move to bucket: init": // Move from start to scoring position
+                    follower.followPath(bucketDrop, true);
+                    setPathState("Grab sample");
                 break;
 
-            case 1:
+            case "234234":
                 if (!follower.isBusy()) {
-                    setPathState(2);
+                    setPathState("");
                     grabMotorL.setTargetPosition(375);
                     grabMotorR.setTargetPosition(375);
                 }
                 break;
 
-            case 2: // Wait until the robot is near the first sample pickup position
+            case "32423": // Wait until the robot is near the first sample pickup position
                 if (pathTimer.getElapsedTime() > 2000) {
                     follower.followPath(next, true);
-                    setPathState(3);
+                    setPathState("83");
                 }
                 break;
 
@@ -281,7 +278,7 @@ public class RedBucket extends OpMode {
 //                break;
         }
     }
-    public void setPathState (int pState){
+    public void setPathState (String pState){
         pathState = pState;
         pathTimer.resetTimer();
     }

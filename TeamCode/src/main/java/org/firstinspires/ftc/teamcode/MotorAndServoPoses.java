@@ -110,7 +110,6 @@ public class MotorAndServoPoses extends LinearOpMode {
 
 
         waitForStart();
-        follower.startTeleopDrive();
         while (opModeIsActive()) {
             follower.update();
             telemetry.addData("inTakeRight", intakeRight.getPosition());
