@@ -24,11 +24,11 @@ public class JuliannaBucket extends OpMode {
     private PathChain scorePreload, park;
     private PathChain slurp1, slurp2, slurp3, score1, score2, score3;
     private final Pose startPose = new Pose(134, 45, Math.toRadians(180));
-    private final Pose slurp1Pose = new Pose(110, 21, Math.toRadians(180));
+    private final Pose slurp1Pose = new Pose(114, 21, Math.toRadians(180));
     private final Pose score1Pose = new Pose(127, 19, Math.toRadians(150));
-    private final Pose slurp2Pose = new Pose(111, 11, Math.toRadians(180));
+    private final Pose slurp2Pose = new Pose(114, 13, Math.toRadians(180));
     private final Pose score2Pose = new Pose(127, 19, Math.toRadians(150));
-    private final Pose slurp3Pose = new Pose(112, 4, Math.toRadians(180));
+    private final Pose slurp3Pose = new Pose(114, 5.5, Math.toRadians(180));
     private final Pose score3Pose = new Pose(127,19, Math.toRadians(150));
     //private final Pose grabPose = new Pose(133, 120, Math.toRadians(180));
     //private final Pose clipPose2 = new Pose(100, 76, Math.toRadians(-180));

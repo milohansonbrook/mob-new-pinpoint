@@ -26,12 +26,12 @@ public class JuliannaClip extends OpMode {
     private int pathState;
     private PathChain scorePreload, park;
     private PathChain pushThings, prePush, grab1, grabScore1, back1, grabScore2, back2, grabScore3;
-    private final Pose startPose = new Pose(134, 96, Math.toRadians(180));
-    private final Pose clipPose = new Pose(130, 85, Math.toRadians(180));
-    private final Pose pushPose = new Pose(76, 120, Math.toRadians(180));
+    private final Pose startPose = new Pose(134, 95, Math.toRadians(180));
+    private final Pose clipPose = new Pose(105, 75, Math.toRadians(180));
+    private final Pose pushPose = new Pose(88, 117, Math.toRadians(180));
     private final Pose pushBack1 = new Pose(130, 120, Math.toRadians(180));
     private final Pose pushBack2 = new Pose(130, 133, Math.toRadians(180));
-    private final Pose pushBack3 = new Pose(73, 133, Math.toRadians(180));
+    private final Pose pushBack3 = new Pose(88, 133, Math.toRadians(180));
     private final Pose pushBack4 = new Pose(130,142, Math.toRadians(180));
     private final Pose grabPose = new Pose(133, 120, Math.toRadians(180));
     private final Pose clipPose2 = new Pose(100, 76, Math.toRadians(180));
@@ -51,13 +51,13 @@ public class JuliannaClip extends OpMode {
         //clip();
 
         prePush = follower.pathBuilder()
-                .addPath(new BezierCurve(new Point(clipPose), new Point(118, 121), new Point(pushPose)))
+                .addPath(new BezierCurve(new Point(clipPose), new Point(120, 114), new Point(pushPose)))
                 .setLinearHeadingInterpolation(clipPose.getHeading(), pushPose.getHeading())
                 .build();
         pushThings = follower.pathBuilder()
                 .addBezierLine(new Point(pushPose), new Point(pushBack1))
                 .setLinearHeadingInterpolation(pushPose.getHeading(), pushBack1.getHeading())
-                .addBezierCurve(new Point(pushBack1), new Point(47, 119), new Point(68, 142), new Point(pushBack2))
+                .addBezierCurve(new Point(pushBack1), new Point(52, 120), new Point(110, 143), new Point(pushBack2))
                 .setLinearHeadingInterpolation(pushBack1.getHeading(), pushBack2.getHeading())
                 .addBezierLine(new Point(pushBack2), new Point(pushBack3))
                 .setLinearHeadingInterpolation(pushBack2.getHeading(), pushBack3.getHeading())
