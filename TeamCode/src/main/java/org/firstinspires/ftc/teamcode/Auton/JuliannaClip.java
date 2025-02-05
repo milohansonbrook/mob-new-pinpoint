@@ -26,18 +26,18 @@ public class JuliannaClip extends OpMode {
     private int pathState;
     private PathChain scorePreload, park;
     private PathChain pushThings, prePush, grab1, grabScore1, back1, grabScore2, back2, grabScore3;
-    private final Pose startPose = new Pose(134, 95, Math.toRadians(180));
-    private final Pose clipPose = new Pose(105, 75, Math.toRadians(180));
-    private final Pose pushPose = new Pose(88, 117, Math.toRadians(180));
-    private final Pose pushBack1 = new Pose(130, 120, Math.toRadians(180));
-    private final Pose pushBack2 = new Pose(130, 133, Math.toRadians(180));
-    private final Pose pushBack3 = new Pose(88, 133, Math.toRadians(180));
-    private final Pose pushBack4 = new Pose(130,142, Math.toRadians(180));
-    private final Pose grabPose = new Pose(133, 120, Math.toRadians(180));
-    private final Pose clipPose2 = new Pose(100, 76, Math.toRadians(180));
-    private final Pose clipPose3 = new Pose(100, 74, Math.toRadians(180));
-    private final Pose clipPose4 = new Pose(100, 72, Math.toRadians(180));
-    private final Pose end = new Pose(134, 127, Math.toRadians(180));
+    private final Pose startPose = new Pose(133, 95, Math.toRadians(180));
+    private final Pose clipPose = new Pose(110, 78, Math.toRadians(180));
+    private final Pose pushPose = new Pose(82, 105, Math.toRadians(180));
+    private final Pose pushBack1 = new Pose(115, 112, Math.toRadians(180));
+    private final Pose pushBack2 = new Pose(115, 121, Math.toRadians(180));
+    private final Pose pushBack3 = new Pose(82, 125, Math.toRadians(180));
+    private final Pose pushBack4 = new Pose(115,128, Math.toRadians(180));
+    private final Pose grabPose = new Pose(123, 115, Math.toRadians(180));
+    private final Pose clipPose2 = new Pose(110, 77, Math.toRadians(180));
+    private final Pose clipPose3 = new Pose(110, 76, Math.toRadians(180));
+    private final Pose clipPose4 = new Pose(110, 75, Math.toRadians(180));
+    private final Pose end = new Pose(133, 127, Math.toRadians(180));
     private Servo Rshoulder, turnGrabber, openGrabber, slurp, turnSlurp;
     private DcMotor Lslide, Rslide, out;
 
@@ -51,17 +51,17 @@ public class JuliannaClip extends OpMode {
         //clip();
 
         prePush = follower.pathBuilder()
-                .addPath(new BezierCurve(new Point(clipPose), new Point(120, 114), new Point(pushPose)))
+                .addPath(new BezierCurve(new Point(clipPose), new Point(120, 114), new Point(117.6, 106), new Point(81.5, 98), new Point(pushPose)))
                 .setLinearHeadingInterpolation(clipPose.getHeading(), pushPose.getHeading())
                 .build();
         pushThings = follower.pathBuilder()
                 .addBezierLine(new Point(pushPose), new Point(pushBack1))
                 .setLinearHeadingInterpolation(pushPose.getHeading(), pushBack1.getHeading())
-                .addBezierCurve(new Point(pushBack1), new Point(52, 120), new Point(110, 143), new Point(pushBack2))
+                .addBezierCurve(new Point(pushBack1), new Point(52, 120), new Point(113, 132), new Point(pushBack2))
                 .setLinearHeadingInterpolation(pushBack1.getHeading(), pushBack2.getHeading())
                 .addBezierLine(new Point(pushBack2), new Point(pushBack3))
                 .setLinearHeadingInterpolation(pushBack2.getHeading(), pushBack3.getHeading())
-                .addBezierCurve(new Point(pushBack3), new Point(74, 140), new Point(pushBack4))
+                .addBezierLine(new Point(pushBack3), new Point(pushBack4))
                 .setLinearHeadingInterpolation(pushBack3.getHeading(), pushBack4.getHeading())
                 .build();
         grab1 = follower.pathBuilder()

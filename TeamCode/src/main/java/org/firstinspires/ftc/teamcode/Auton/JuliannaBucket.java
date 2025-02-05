@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Auton;
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
+import com.pedropathing.pathgen.BezierCurve;
 import com.pedropathing.pathgen.BezierLine;
 import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
@@ -28,7 +29,7 @@ public class JuliannaBucket extends OpMode {
     private final Pose score1Pose = new Pose(127, 19, Math.toRadians(150));
     private final Pose slurp2Pose = new Pose(114, 13, Math.toRadians(180));
     private final Pose score2Pose = new Pose(127, 19, Math.toRadians(150));
-    private final Pose slurp3Pose = new Pose(114, 5.5, Math.toRadians(180));
+    private final Pose slurp3Pose = new Pose(114, 7, Math.toRadians(180));
     private final Pose score3Pose = new Pose(127,19, Math.toRadians(150));
     //private final Pose grabPose = new Pose(133, 120, Math.toRadians(180));
     //private final Pose clipPose2 = new Pose(100, 76, Math.toRadians(-180));
@@ -69,7 +70,7 @@ public class JuliannaBucket extends OpMode {
                 .setLinearHeadingInterpolation(slurp3Pose.getHeading(), score3Pose.getHeading())
                 .build();
         park = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(score3Pose), new Point(end)))
+                .addPath(new BezierCurve(new Point(score3Pose), new Point(88, 24),new Point(end)))
                 .setLinearHeadingInterpolation(score3Pose.getHeading(), end.getHeading())
                 .build();
 
