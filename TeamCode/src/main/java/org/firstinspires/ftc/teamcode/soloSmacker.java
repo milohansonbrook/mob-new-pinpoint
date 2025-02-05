@@ -356,6 +356,19 @@ public class soloSmacker extends LinearOpMode {
             telemetry.addData("Sequence Active", sampleSequenceActive);
             telemetry.addData("Sequence Complete", sampleSequenceComplete);
             telemetry.addData("Claw State", clawState ? "Open" : "Closed");
+            telemetry.addData("turnSlurp", turnSlurp.getPosition());
+            telemetry.addData("Claw", claw.getPosition());
+            telemetry.addData("turnClaw", turnClaw.getPosition());
+            telemetry.addData("right shoulder", rShoulder.getPosition());
+            telemetry.addData("left shoulder", lShoulder.getPosition());
+            telemetry.addData("twoBarL", twoBarL.getPosition());
+            telemetry.addData("twoBarR", twoBarR.getPosition());
+            telemetry.addData("grabMotorL", grabMotorL.getCurrentPosition());
+            telemetry.addData("grabMotorR", grabMotorR.getCurrentPosition());
+
+            telemetry.addData("X", follower.getPose().getX());
+            telemetry.addData("Y", follower.getPose().getY());
+            telemetry.addData("Heading in Degrees", Math.toDegrees(follower.getPose().getHeading()));
             telemetry.update();
         }
     }
