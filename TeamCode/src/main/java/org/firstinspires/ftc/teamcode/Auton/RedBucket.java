@@ -39,33 +39,19 @@ public class RedBucket extends OpMode {
     DcMotor grabMotorR;
 
     public static double slurpLowerBound = 0.21;
-    public static double slurpUpperBound = 0.4;
-    public static int clawHeight = 860;
+    public static double slurpUpperBound = 0.65;
     public static double armMidPosL = 0.81;
-    public static double armMidPosR = (1 - armMidPosL);
-    public static double wristMidPos = 0.5;
+    public static double clawClose = 1;
+    public static double clawOpen = 0;
 
-    boolean intakeDown;
-    boolean aLast;
     boolean clawState;
-    boolean sampleSequenceActive;
-    boolean sampleSequenceComplete;
-    boolean specimenSequenceActive;
-    boolean specimenSequenceComplete;
-    boolean yLast;
-    boolean jiggle;
-    boolean stickB1Last;
-    boolean halfSpeed;
     double drivePower;
-    long sampleSequenceStartTime = 0;
-    long specimenSequenceStartTime = 0;
-    int sampleSequenceStep = 0;
-    int specimenSequenceStep = 0;
+    public static int bucketSlidePos = 800;
 
 
     String pathState = "init";
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
-    private final Pose bucketPose = new Pose(5.6, 21.36, Math.toRadians(-45));
+    private final Pose bucketPose = new Pose(5.6, 16.42, Math.toRadians(315));
     private final Pose nPose = new Pose(6.05, 12.67, Math.toRadians(0));
 
     // Starting position
@@ -102,15 +88,15 @@ public class RedBucket extends OpMode {
 
         turnClaw = hardwareMap.get(Servo.class, "turnClaw");
         turnClaw.scaleRange(0, 1);
-        turnClaw.setPosition(wristMidPos);
+        turnClaw.setPosition(1);
 
         rShoulder = hardwareMap.get(Servo.class, "rShoulder");
         rShoulder.scaleRange(0, 1);
-        rShoulder.setPosition(armMidPosR);
+        rShoulder.setPosition(0.55);
 
         lShoulder = hardwareMap.get(Servo.class, "lShoulder");
         lShoulder.scaleRange(0, 1);
-        lShoulder.setPosition(armMidPosL);
+        lShoulder.setPosition(0.45);
 
         grabMotorL = hardwareMap.get(DcMotor.class, "grabMotorL");
         grabMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -127,7 +113,7 @@ public class RedBucket extends OpMode {
 
         claw = hardwareMap.get(Servo.class, "claw");
         claw.scaleRange(0.525, 0.64);
-        claw.setPosition(0);
+        claw.setPosition(1);
 
         slurp = hardwareMap.get(CRServo.class, "slurp");
 
@@ -210,21 +196,24 @@ public class RedBucket extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case "Move to bucket: init": // Move from start to scoring position
-                    follower.followPath(bucketDrop, true);
-                    setPathState("Grab sample");
+                follower.followPath(bucketDrop, true);
+                grabMotorL.setTargetPosition(bucketSlidePos);
+                grabMotorR.setTargetPosition(bucketSlidePos);
+                lShoulder.setPosition(0);
+                rShoulder.setPosition(1);
+                setPathState("adjust arm");
                 break;
 
-            case "234234":
-                if (!follower.isBusy()) {
-                    setPathState("");
-                    grabMotorL.setTargetPosition(375);
-                    grabMotorR.setTargetPosition(375);
+            case "adjust arm":
+                if (grabMotorL.getCurrentPosition() == bucketSlidePos) {
+                    turnClaw.setPosition(0.5);
+                    setPathState("adjust claw");
                 }
                 break;
 
-            case "32423": // Wait until the robot is near the first sample pickup position
+            case "adjust claw": // Wait until the robot is near the first sample pickup position
                 if (pathTimer.getElapsedTime() > 2000) {
-                    follower.followPath(next, true);
+                    claw.setPosition(0);
                     setPathState("83");
                 }
                 break;
