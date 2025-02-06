@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
 import com.pedropathing.util.Constants;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.*;
@@ -11,7 +12,7 @@ import com.qualcomm.robotcore.hardware.*;
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
-@TeleOp
+@Autonomous
 @Config
 public class PoseMaster extends LinearOpMode {
     Servo turnSlurp;

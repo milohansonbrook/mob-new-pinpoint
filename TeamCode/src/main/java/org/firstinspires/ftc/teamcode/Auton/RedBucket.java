@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.Auton;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.AutonPoses.RedClipPoses; //to use
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
 import com.pedropathing.pathgen.BezierCurve;
@@ -27,9 +29,10 @@ import pedroPathing.constants.LConstants;
 @Config
 public class RedBucket extends OpMode {
 
+    //Hardware
     Servo turnSlurp;
     Servo claw;
-    Servo turnClaw;
+    Servo wrist;
     Servo rShoulder;
     Servo lShoulder;
     Servo twoBarR;
@@ -38,41 +41,58 @@ public class RedBucket extends OpMode {
     DcMotor grabMotorL;
     DcMotor grabMotorR;
 
+    //Time variables:
+    public static int bucketWristWait = 900;
+    public static int bucketClawWait = 400;
+    public static int bucketRetractWait = 400;
+    public static int bucketDownWait = 400;
+    public static int clawCloseWait = 700;
+
     public static double slurpLowerBound = 0.21;
     public static double slurpUpperBound = 0.65;
-    public static double armMidPosL = 0.81;
+
+    //Pose variables
     public static double clawClose = 1;
     public static double clawOpen = 0;
+    public static double lShoulderUp = 0;
+    public static double rShoulderUp = 1;
+    public static double lShoulderSnag = 0.8;
+    public static double rShoulderSnag = 1-lShoulderSnag;
+    public static double wristUp = 1;
+    public static double wristStraight = 0.5;
+    public static double extendBarL = 0;
+    public static double extendBarR = 1;
+    public static double slurpDefault = 0.15;
+    public static double slurpDown = 0.025;
+    public static double slurpUp = 0.5;
+    public static double retractBarL = 1;
+    public static double retractBarR = 0;
 
-    boolean clawState;
-    double drivePower;
-    public static int bucketSlidePos = 800;
+    public static double sample3x = 13;
+    public static double sample3y = 22;
+    public static double sample3heading = 22;
 
 
-    String pathState = "init";
-    private final Pose startPose = new Pose(138, 31, Math.toRadians(0));
-    private final Pose bucketPose = new Pose(5.6, 16.42, Math.toRadians(315));
-    private final Pose nPose = new Pose(6.05, 12.67, Math.toRadians(0));
+    public static int bucketSlidePos = 850;
 
-    // Starting position
-//    private final Pose scorePose = new Pose(14, 129, Math.toRadians(315)); // Scoring position
-//
-//    private final Pose pickup1Pose = new Pose(37, 121, Math.toRadians(0)); // First sample pickup
-//    private final Pose pickup2Pose = new Pose(43, 130, Math.toRadians(0)); // Second sample pickup
-//    private final Pose pickup3Pose = new Pose(49, 135, Math.toRadians(0)); // Third sample pickup
-//
-//    private final Pose parkPose = new Pose(60, 98, Math.toRadians(90));    // Parking position
-//    private final Pose parkControlPose = new Pose(60, 98, Math.toRadians(90)); // Control point for curved path
+    public boolean bucketFinished = false;
+
+    public String bucketState = "init";
+    public String pathState = "init";
+    private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
+    private final Pose sample1 = new Pose(8.48, 10.76, Math.toRadians(0));
+    private final Pose sample2 = new Pose(8.48, 19, Math.toRadians(0));
+    private final Pose sample3 = new Pose(sample3x, sample3y, Math.toRadians(sample3heading));
+    private final Pose bucketPose = new Pose(5.3, 18, Math.toRadians(315));
 
     private Follower follower;
-    private Path scorePreload, park;
-    private PathChain bucketDrop, next, grabPickup2, grabPickup3, scorePickup1, scorePickup2, scorePickup3;
+    private PathChain bucketDrop, sample1Snag, sample2Snag, sample3Snag;
     Timer opmodeTimer;
     Timer pathTimer;
+    Timer bucketTimer;
 
     @Override
     public void init() {
-        clawState = true;
 
         turnSlurp = hardwareMap.get(Servo.class, "turnSlurp");
         turnSlurp.scaleRange(slurpLowerBound, slurpUpperBound);
@@ -86,9 +106,9 @@ public class RedBucket extends OpMode {
         twoBarR.scaleRange(0.29, 0.585);
         twoBarR.setPosition(0);
 
-        turnClaw = hardwareMap.get(Servo.class, "turnClaw");
-        turnClaw.scaleRange(0, 1);
-        turnClaw.setPosition(1);
+        wrist = hardwareMap.get(Servo.class, "turnClaw");
+        wrist.scaleRange(0, 1);
+        wrist.setPosition(wristUp);
 
         rShoulder = hardwareMap.get(Servo.class, "rShoulder");
         rShoulder.scaleRange(0, 1);
@@ -113,11 +133,12 @@ public class RedBucket extends OpMode {
 
         claw = hardwareMap.get(Servo.class, "claw");
         claw.scaleRange(0.525, 0.64);
-        claw.setPosition(1);
+        claw.setPosition(clawClose);
 
         slurp = hardwareMap.get(CRServo.class, "slurp");
 
         pathTimer = new Timer();
+        bucketTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
 
@@ -140,6 +161,7 @@ public class RedBucket extends OpMode {
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
         telemetry.addData("heading", follower.getPose().getHeading());
+        telemetry.addData("Bucket state: ", bucketState);
         telemetry.update();
     }
 
@@ -148,128 +170,261 @@ public class RedBucket extends OpMode {
     @Override
     public void start() {
         opmodeTimer.resetTimer();
-        setPathState("Move to bucket: init");
+        setPathState("drop at bucket 1");
+        setBucketState("Move to bucket: init");
     }
 
     public void buildPaths() {
         // Path for scoring preload
 //        scorePreload = new Path(new BezierLine(new Point(startPose), new Point(scorePose)));
 //        scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
-        bucketDrop = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(startPose), new Point(bucketPose)))
-                .setLinearHeadingInterpolation(startPose.getHeading(), bucketPose.getHeading())
+        sample1Snag = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(bucketPose), new Point(sample1)))
+                .setLinearHeadingInterpolation(bucketPose.getHeading(), sample1.getHeading())
+                .build();
+        sample2Snag = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(bucketPose), new Point(sample2)))
+                .setLinearHeadingInterpolation(bucketPose.getHeading(), sample2.getHeading())
+                .build();
+        sample3Snag = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(bucketPose), new Point(sample3)))
+                .setLinearHeadingInterpolation(bucketPose.getHeading(), sample3.getHeading())
                 .build();
 
-//        next = follower.pathBuilder()
-//                .addPath(new BezierLine(new Point(clipPose), new Point(nPose)))
-//                .setLinearHeadingInterpolation(clipPose.getHeading(), nPose.getHeading())
-//                .build();
-
-//        scorePickup1 = follower.pathBuilder()
-//                .addPath(new BezierLine(new Point(pickup1Pose), new Point(scorePose)))
-//                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
-//                .build();
-//        grabPickup2 = follower.pathBuilder()
-//                .addPath(new BezierLine(new Point(scorePose), new Point(pickup2Pose)))
-//                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2Pose.getHeading())
-//                .build();
-//
-//        scorePickup2 = follower.pathBuilder()
-//                .addPath(new BezierLine(new Point(pickup2Pose), new Point(scorePose)))
-//                .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePose.getHeading())
-//                .build();
-//
-//        grabPickup3 = follower.pathBuilder()
-//                .addPath(new BezierLine(new Point(scorePose), new Point(pickup3Pose)))
-//                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup3Pose.getHeading())
-//                .build();
-//
-//        scorePickup3 = follower.pathBuilder()
-//                .addPath(new BezierLine(new Point(pickup3Pose), new Point(scorePose)))
-//                .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePose.getHeading())
-//                .build();
-//
 //        park = new Path(new BezierCurve(new Point(scorePose), new Point(parkControlPose), new Point(parkPose)));
 //        park.setLinearHeadingInterpolation(scorePose.getHeading(), parkPose.getHeading());
     }
-
-    public void autonomousPathUpdate() {
-        switch (pathState) {
-            case "Move to bucket: init": // Move from start to scoring position
-                follower.followPath(bucketDrop, true);
-                grabMotorL.setTargetPosition(bucketSlidePos);
-                grabMotorR.setTargetPosition(bucketSlidePos);
-                lShoulder.setPosition(0);
-                rShoulder.setPosition(1);
-                setPathState("adjust arm");
-                break;
-
-            case "adjust arm":
-                if (grabMotorL.getCurrentPosition() == bucketSlidePos) {
-                    turnClaw.setPosition(0.5);
-                    setPathState("adjust claw");
-                }
-                break;
-
-            case "adjust claw": // Wait until the robot is near the first sample pickup position
-                if (pathTimer.getElapsedTime() > 2000) {
-                    claw.setPosition(0);
-                    setPathState("83");
-                }
-                break;
-
-//            case 2: // Wait until the robot is near the first sample pickup position
-//                if (!follower.isBusy()) {
-//                    follower.followPath(scorePickup1, true);
-//                    setPathState(3);
-//                }
-//                break;
-//
-//            case 3: // Wait until the robot returns to the scoring position
-//                if (!follower.isBusy()) {
-//                    follower.followPath(grabPickup2, true);
-//                    setPathState(4);
-//                }
-//                break;
-//
-//            case 4: // Wait until the robot is near the second sample pickup position
-//                if (!follower.isBusy()) {
-//                    follower.followPath(scorePickup2, true);
-//                    setPathState(5);
-//                }
-//                break;
-//
-//            case 5: // Wait until the robot returns to the scoring position
-//                if (!follower.isBusy()) {
-//                    follower.followPath(grabPickup3, true);
-//                    setPathState(6);
-//                }
-//                break;
-//
-//            case 6: // Wait until the robot is near the third sample pickup position
-//                if (!follower.isBusy()) {
-//                    follower.followPath(scorePickup3, true);
-//                    setPathState(7);
-//                }
-//                break;
-//
-//            case 7: // Wait until the robot returns to the scoring position
-//                if (!follower.isBusy()) {
-//                    follower.followPath(park, true);
-//                    setPathState(8);
-//                }
-//                break;
-//
-//            case 8: // Wait until the robot is near the parking position
-//                if (!follower.isBusy()) {
-//                    setPathState(-1); // End the autonomous routine
-//                }
-//                break;
-        }
+    public void setBucketState(String bState){
+        bucketState = bState;
+        bucketTimer.resetTimer();
     }
+
     public void setPathState (String pState){
         pathState = pState;
         pathTimer.resetTimer();
     }
+
+    public void extendSlurp(){
+        twoBarL.setPosition(extendBarL);
+        twoBarR.setPosition(extendBarR);
+        turnSlurp.setPosition(slurpDown);
+        slurp.setPower(-1);
+    }
+
+    public void retractSlurp(){
+        twoBarL.setPosition(retractBarL);
+        twoBarR.setPosition(retractBarR);
+        turnSlurp.setPosition(slurpUp);
+    }
+
+    public void bucketDrop(Pose givenPose){
+        switch (bucketState){
+            case "Move to bucket: init": // Move from start to scoring position
+                bucketDrop = follower.pathBuilder()
+                        .addPath(new BezierLine(new Point(givenPose), new Point(bucketPose)))
+                        .setLinearHeadingInterpolation(givenPose.getHeading(), bucketPose.getHeading())
+                        .build();
+                follower.followPath(bucketDrop, true);
+                grabMotorL.setTargetPosition(bucketSlidePos);
+                grabMotorR.setTargetPosition(bucketSlidePos);
+                lShoulder.setPosition(lShoulderUp);
+                rShoulder.setPosition(rShoulderUp);
+                setBucketState("adjust wrist");
+                break;
+
+            case "adjust wrist":
+                if (!follower.isBusy()) {
+                    wrist.setPosition(wristStraight);
+                    setBucketState("open claw");
+                }
+                break;
+
+            case "open claw":
+                if (bucketTimer.getElapsedTime() > bucketClawWait) {
+                    claw.setPosition(clawOpen);
+                    setBucketState("retract");
+                }
+                break;
+
+            case "retract":
+                if (bucketTimer.getElapsedTime() > bucketRetractWait){
+                    wrist.setPosition(wristUp);
+                    setBucketState("down");
+                }
+                break;
+
+            case "down":
+                if (bucketTimer.getElapsedTime() > bucketDownWait){
+                    grabMotorL.setTargetPosition(0);
+                    grabMotorR.setTargetPosition(0);
+                    lShoulder.setPosition(0.5);
+                    rShoulder.setPosition(0.5);
+                    bucketFinished = true;
+                }
+                break;
+        }
+    }
+    public void autonomousPathUpdate() {
+        switch (pathState) {
+            case "drop at bucket 1":
+                turnSlurp.setPosition(slurpDefault);
+                bucketDrop(startPose);
+                if (bucketFinished) {
+                    setPathState("first sample");
+                    bucketFinished = false;
+                    setBucketState("Move to bucket: init");
+                }
+                break;
+            case "first sample":
+                follower.followPath(sample1Snag, true);
+                setPathState("extend1");
+                break;
+
+            case "extend1":
+                if (pathTimer.getElapsedTime() > 2000) {
+                    rShoulder.setPosition(rShoulderSnag);
+                    lShoulder.setPosition(lShoulderSnag);
+                    wrist.setPosition(wristStraight);
+                    extendSlurp();
+                    setPathState("retract1");
+                }
+                break;
+
+            case "retract1":
+                if (pathTimer.getElapsedTime() > 1250) {
+                    retractSlurp();
+                    setPathState("grab");
+                }
+                break;
+
+            case "grab":
+                if (pathTimer.getElapsedTime() > clawCloseWait) {
+                    slurp.setPower(0);
+                    claw.setPosition(clawClose);
+                    turnSlurp.setPosition(0.5);
+                    setPathState("wrist switch");
+                }
+                break;
+
+            case "wrist switch":
+                if (pathTimer.getElapsedTime() > 200) {
+                    wrist.setPosition(wristUp);
+                    setPathState("drop at bucket 2");
+                }
+                break;
+
+            case "drop at bucket 2":
+                bucketDrop(sample1);
+                if (bucketFinished){
+                    bucketFinished = false;
+                    setPathState("second sample");
+                    setBucketState("Move to bucket: init");
+                }
+                break;
+
+
+
+
+
+
+            case "second sample":
+                follower.followPath(sample2Snag, true);
+                setPathState("extend2");
+                break;
+
+            case "extend2":
+                if (pathTimer.getElapsedTime() > 2000) {
+                    rShoulder.setPosition(rShoulderSnag);
+                    lShoulder.setPosition(lShoulderSnag);
+                    wrist.setPosition(wristStraight);
+                    extendSlurp();
+                    setPathState("retract2");
+                }
+                break;
+
+            case "retract2":
+                if (pathTimer.getElapsedTime() > 1250) {
+                    retractSlurp();
+                    setPathState("grab 2");
+                }
+                break;
+
+            case "grab 2":
+                if (pathTimer.getElapsedTime() > clawCloseWait) {
+                    slurp.setPower(0);
+                    claw.setPosition(clawClose);
+                    turnSlurp.setPosition(0.5);
+                    setPathState("wrist switch 2");
+                }
+                break;
+
+            case "wrist switch 2":
+                if (pathTimer.getElapsedTime() > 200) {
+                    wrist.setPosition(wristUp);
+                    setPathState("drop at bucket 3");
+                }
+                break;
+
+            case "drop at bucket 3":
+                bucketDrop(sample2);
+                if (bucketFinished){
+                    bucketFinished = false;
+                    setPathState("third sample");
+                    setBucketState("Move to bucket: init");
+                }
+                break;
+
+
+
+
+
+            case "third sample":
+                follower.followPath(sample3Snag, true);
+                setPathState("extend3");
+                break;
+
+            case "extend3":
+                if (pathTimer.getElapsedTime() > 2000) {
+                    rShoulder.setPosition(rShoulderSnag);
+                    lShoulder.setPosition(lShoulderSnag);
+                    wrist.setPosition(wristStraight);
+                    extendSlurp();
+                    setPathState("retract3");
+                }
+                break;
+
+            case "retract3":
+                if (pathTimer.getElapsedTime() > 1250) {
+                    retractSlurp();
+                    setPathState("grab 3");
+                }
+                break;
+
+            case "grab 3":
+                if (pathTimer.getElapsedTime() > clawCloseWait) {
+                    slurp.setPower(0);
+                    claw.setPosition(clawClose);
+                    turnSlurp.setPosition(0.5);
+                    setPathState("wrist switch 3");
+                }
+                break;
+
+            case "wrist switch 3":
+                if (pathTimer.getElapsedTime() > 200) {
+                    wrist.setPosition(wristUp);
+                    setPathState("drop at bucket 4");
+                }
+                break;
+
+            case "drop at bucket 4":
+                bucketDrop(sample3);
+                if (bucketFinished){
+                    bucketFinished = false;
+                    setPathState("park");
+                }
+                break;
+        }
+    }
+
 }
 
