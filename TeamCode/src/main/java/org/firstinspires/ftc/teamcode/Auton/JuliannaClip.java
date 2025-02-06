@@ -11,7 +11,9 @@ import com.pedropathing.util.Constants;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import pedroPathing.constants.FConstants;
@@ -22,11 +24,45 @@ import pedroPathing.constants.LConstants;
 public class JuliannaClip extends OpMode {
 
     private Follower follower;
+    Servo turnSlurp;
+    Servo claw;
+    Servo turnClaw;
+    Servo rShoulder;
+    Servo lShoulder;
+    Servo twoBarR;
+    Servo twoBarL;
+    CRServo slurp;
+    DcMotor grabMotorL;
+    DcMotor grabMotorR;
+
+    public static double slurpLowerBound = 0.21;
+    public static double slurpUpperBound = 0.65;
+    public static int clawHeight = 860;
+    public static double armMidPosL = 0.55;
+    public static double armMidPosR = (1 - armMidPosL);
+    public static double wristMidPos = 0.5;
+
+    boolean intakeDown;
+    boolean aLast;
+    boolean clawState;
+    boolean sampleSequenceActive;
+    boolean sampleSequenceComplete;
+    boolean specimenSequenceActive;
+    boolean specimenSequenceComplete;
+    boolean yLast;
+    boolean jiggle;
+    boolean stickB1Last;
+    boolean halfSpeed;
+    double drivePower;
+    long sampleSequenceStartTime = 0;
+    long specimenSequenceStartTime = 0;
+    int sampleSequenceStep = 0;
+    int specimenSequenceStep = 0;
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
     private PathChain scorePreload, park;
     private PathChain pushThings, prePush, grab1, grabScore1, back1, grabScore2, back2, grabScore3;
-    private final Pose startPose = new Pose(133, 95, Math.toRadians(180));
+    private final Pose startPose = new Pose(133, 87, Math.toRadians(180));
     private final Pose clipPose = new Pose(110, 78, Math.toRadians(180));
     private final Pose pushPose = new Pose(82, 105, Math.toRadians(180));
     private final Pose pushBack1 = new Pose(115, 112, Math.toRadians(180));
@@ -38,7 +74,7 @@ public class JuliannaClip extends OpMode {
     private final Pose clipPose3 = new Pose(110, 76, Math.toRadians(180));
     private final Pose clipPose4 = new Pose(110, 75, Math.toRadians(180));
     private final Pose end = new Pose(133, 127, Math.toRadians(180));
-    private Servo Rshoulder, turnGrabber, openGrabber, slurp, turnSlurp;
+    private Servo Rshoulder, turnGrabber, openGrabber;
     private DcMotor Lslide, Rslide, out;
 
     public void buildPaths()
@@ -271,6 +307,51 @@ public class JuliannaClip extends OpMode {
     /** This method is called once at the init of the OpMode. **/
     @Override
     public void init() {
+        clawState = true;
+
+        turnSlurp = hardwareMap.get(Servo.class, "turnSlurp");
+        turnSlurp.scaleRange(slurpLowerBound, slurpUpperBound);
+        turnSlurp.setPosition(1);
+
+        twoBarL = hardwareMap.get(Servo.class, "twoBarL");
+        twoBarL.scaleRange(0.425, 0.72);
+        twoBarL.setPosition(1);
+
+        twoBarR = hardwareMap.get(Servo.class, "twoBarR");
+        twoBarR.scaleRange(0.29, 0.585);
+        twoBarR.setPosition(0);
+
+        turnClaw = hardwareMap.get(Servo.class, "turnClaw");
+        turnClaw.scaleRange(0, 1);
+        turnClaw.setPosition(wristMidPos);
+
+        rShoulder = hardwareMap.get(Servo.class, "rShoulder");
+        rShoulder.scaleRange(0, 1);
+        rShoulder.setPosition(armMidPosR);
+
+        lShoulder = hardwareMap.get(Servo.class, "lShoulder");
+        lShoulder.scaleRange(0, 1);
+        lShoulder.setPosition(armMidPosL);
+
+        grabMotorL = hardwareMap.get(DcMotor.class, "grabMotorL");
+        grabMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        grabMotorL.setTargetPosition(0);
+        grabMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        grabMotorL.setPower(0.5);
+
+        grabMotorR = hardwareMap.get(DcMotor.class, "grabMotorR");
+        grabMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        grabMotorR.setDirection(DcMotorSimple.Direction.REVERSE);
+        grabMotorR.setTargetPosition(0);
+        grabMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        grabMotorR.setPower(0.5);
+
+        claw = hardwareMap.get(Servo.class, "claw");
+        claw.scaleRange(0.525, 0.64);
+        claw.setPosition(0);
+
+        slurp = hardwareMap.get(CRServo.class, "slurp");
+
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
