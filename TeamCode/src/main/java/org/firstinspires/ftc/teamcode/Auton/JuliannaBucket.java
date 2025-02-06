@@ -137,20 +137,18 @@ public class JuliannaBucket extends OpMode {
                 grabMotorR.setTargetPosition(bucketSlidePos);
                 lShoulder.setPosition(0);
                 rShoulder.setPosition(1);
-                setPathState("adjust arm");
-                break;
-            case "adjust arm":
                 if (grabMotorL.getCurrentPosition() == bucketSlidePos) {
                     turnClaw.setPosition(0.5);
                     setPathState("adjust claw");
                 }
                 break;
-
             case "adjust claw": // Wait until the robot is near the first sample pickup position
                 if (pathTimer.getElapsedTime() > 2000) {
                     claw.setPosition(0);
                     setPathState("one");
                 }
+                grabMotorL.setTargetPosition(0);
+                grabMotorR.setTargetPosition(0);
                 break;
             case "one":
                 if(!follower.isBusy()) {
