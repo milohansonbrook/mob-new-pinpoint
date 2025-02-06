@@ -160,7 +160,7 @@ public class RedClip extends OpMode {
                 .addPath(new BezierLine(new Point(startPose), new Point(clipPose)))
                 .setLinearHeadingInterpolation(startPose.getHeading(), clipPose.getHeading())
                 .build();
-        pushThings = follower.pathBuilder()
+        pushThings  = follower.pathBuilder()
                 .addPath(new BezierLine(new Point(clipPose), new Point(helper)))
                 .setLinearHeadingInterpolation(clipPose.getHeading(), helper.getHeading())
                 .addBezierLine(new Point(helper), new Point(set1))
