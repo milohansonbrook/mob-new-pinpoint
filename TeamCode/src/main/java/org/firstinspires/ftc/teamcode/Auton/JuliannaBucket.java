@@ -58,22 +58,24 @@ public class JuliannaBucket extends OpMode {
 
 
     String pathState = "init";
-    //private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
-    private final Pose bucketPose = new Pose(5.6, 21.36, Math.toRadians(-45));
-    private final Pose nPose = new Pose(6.05, 12.67, Math.toRadians(0));
+    private final Pose startPose = new Pose(134, 45, Math.toRadians(180));
+    private final Pose bucketPose = new Pose(128, 13, Math.toRadians(135));
+    //private final Pose nPose = new Pose(6.05, 12.67, Math.toRadians(0));
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
     //private int pathState;
     private PathChain scorePreload, park;
     private PathChain slurp1, slurp2, slurp3, score1, score2, score3;
-    private final Pose startPose = new Pose(134, 45, Math.toRadians(180));
+    private PathChain bucketDrop;
+    public static int bucketSlidePos = 800;
+    //private final Pose startPose = new Pose(134, 45, Math.toRadians(180));
     private final Pose slurp1Pose = new Pose(114, 21, Math.toRadians(180));
-    private final Pose score1Pose = new Pose(127, 19, Math.toRadians(150));
+    private final Pose score1Pose = new Pose(127, 19, Math.toRadians(135));
     private final Pose slurp2Pose = new Pose(114, 13, Math.toRadians(180));
-    private final Pose score2Pose = new Pose(127, 19, Math.toRadians(150));
+    private final Pose score2Pose = new Pose(127, 19, Math.toRadians(135));
     private final Pose slurp3Pose = new Pose(114, 7, Math.toRadians(180));
-    private final Pose score3Pose = new Pose(127,19, Math.toRadians(150));
+    private final Pose score3Pose = new Pose(127,19, Math.toRadians(135));
     //private final Pose grabPose = new Pose(133, 120, Math.toRadians(180));
     //private final Pose clipPose2 = new Pose(100, 76, Math.toRadians(-180));
     //private final Pose clipPose3 = new Pose(100, 74, Math.toRadians(-180));
@@ -84,37 +86,41 @@ public class JuliannaBucket extends OpMode {
 
     public void buildPaths()
     {
-        scorePreload = follower.pathBuilder()
+        bucketDrop = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(startPose), new Point(bucketPose)))
+                .setLinearHeadingInterpolation(startPose.getHeading(), bucketPose.getHeading())
+                .build();
+        /*scorePreload = follower.pathBuilder()
                 .addPath(new BezierLine(new Point(startPose), new Point(score1Pose)))
                 .setLinearHeadingInterpolation(startPose.getHeading(), score1Pose.getHeading())
-                .build();
+                .build();*/
         slurp1 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(score1Pose), new Point(slurp1Pose)))
-                .setLinearHeadingInterpolation(score1Pose.getHeading(), slurp1Pose.getHeading())
+                .addPath(new BezierLine(new Point(bucketPose), new Point(slurp1Pose)))
+                .setLinearHeadingInterpolation(bucketPose.getHeading(), slurp1Pose.getHeading())
                 .build();
         score1 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(slurp1Pose), new Point(score1Pose)))
-                .setLinearHeadingInterpolation(slurp1Pose.getHeading(), score1Pose.getHeading())
+                .addPath(new BezierLine(new Point(slurp1Pose), new Point(bucketPose)))
+                .setLinearHeadingInterpolation(slurp1Pose.getHeading(), bucketPose.getHeading())
                 .build();
         slurp2 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(score1Pose), new Point(slurp2Pose)))
-                .setLinearHeadingInterpolation(score1Pose.getHeading(), slurp2Pose.getHeading())
+                .addPath(new BezierLine(new Point(bucketPose), new Point(slurp2Pose)))
+                .setLinearHeadingInterpolation(bucketPose.getHeading(), slurp2Pose.getHeading())
                 .build();
         score2 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(slurp2Pose), new Point(score2Pose)))
-                .setLinearHeadingInterpolation(slurp2Pose.getHeading(), score2Pose.getHeading())
+                .addPath(new BezierLine(new Point(slurp2Pose), new Point(bucketPose)))
+                .setLinearHeadingInterpolation(slurp2Pose.getHeading(), bucketPose.getHeading())
                 .build();
         slurp3 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(score2Pose), new Point(slurp3Pose)))
-                .setLinearHeadingInterpolation(score2Pose.getHeading(), slurp3Pose.getHeading())
+                .addPath(new BezierLine(new Point(bucketPose), new Point(slurp3Pose)))
+                .setLinearHeadingInterpolation(bucketPose.getHeading(), slurp3Pose.getHeading())
                 .build();
         score3 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(slurp3Pose), new Point(score3Pose)))
-                .setLinearHeadingInterpolation(slurp3Pose.getHeading(), score3Pose.getHeading())
+                .addPath(new BezierLine(new Point(slurp3Pose), new Point(bucketPose)))
+                .setLinearHeadingInterpolation(slurp3Pose.getHeading(), bucketPose.getHeading())
                 .build();
         park = follower.pathBuilder()
-                .addPath(new BezierCurve(new Point(score3Pose), new Point(88, 24),new Point(end)))
-                .setLinearHeadingInterpolation(score3Pose.getHeading(), end.getHeading())
+                .addPath(new BezierCurve(new Point(bucketPose), new Point(88, 24),new Point(end)))
+                .setLinearHeadingInterpolation(bucketPose.getHeading(), end.getHeading())
                 .build();
 
     }
@@ -125,9 +131,26 @@ public class JuliannaBucket extends OpMode {
 
     public void autonomousPathUpdate() {
         switch (pathState) {
-            case "zero":
-                follower.followPath(scorePreload);
-                setPathState("1st score");
+            case "Move to bucket: init": // Move from start to scoring position
+                follower.followPath(bucketDrop, true);
+                grabMotorL.setTargetPosition(bucketSlidePos);
+                grabMotorR.setTargetPosition(bucketSlidePos);
+                lShoulder.setPosition(0);
+                rShoulder.setPosition(1);
+                setPathState("adjust arm");
+                break;
+            case "adjust arm":
+                if (grabMotorL.getCurrentPosition() == bucketSlidePos) {
+                    turnClaw.setPosition(0.5);
+                    setPathState("adjust claw");
+                }
+                break;
+
+            case "adjust claw": // Wait until the robot is near the first sample pickup position
+                if (pathTimer.getElapsedTime() > 2000) {
+                    claw.setPosition(0);
+                    setPathState("one");
+                }
                 break;
             case "one":
                 if(!follower.isBusy()) {
@@ -135,7 +158,7 @@ public class JuliannaBucket extends OpMode {
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
                     follower.followPath(slurp1,true);
-                    setPathState("1st slurp");
+                    setPathState("two");
                 }
                 break;
             case "two":
@@ -145,7 +168,19 @@ public class JuliannaBucket extends OpMode {
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
                     follower.followPath(score1,true);
-                    setPathState("2nd score");
+                    setPathState("adjust arm 2");
+                }
+            case "adjust arm 2":
+                if (grabMotorL.getCurrentPosition() == bucketSlidePos) {
+                    turnClaw.setPosition(0.5);
+                    setPathState("adjust claw 2");
+                }
+                break;
+
+            case "adjust claw 2": // Wait until the robot is near the first sample pickup position
+                if (pathTimer.getElapsedTime() > 2000) {
+                    claw.setPosition(0);
+                    setPathState("three");
                 }
                 break;
             case "three":
@@ -155,7 +190,7 @@ public class JuliannaBucket extends OpMode {
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
                     follower.followPath(slurp2,true);
-                    setPathState("2nd slurp");
+                    setPathState("four");
                 }
                 break;
             case "four":
@@ -165,7 +200,20 @@ public class JuliannaBucket extends OpMode {
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
                     follower.followPath(score2,true);
-                    setPathState("3rd score");
+                    setPathState("adjust arm 3");
+                }
+                break;
+            case "adjust arm 3":
+                if (grabMotorL.getCurrentPosition() == bucketSlidePos) {
+                    turnClaw.setPosition(0.5);
+                    setPathState("adjust claw 3");
+                }
+                break;
+
+            case "adjust claw 3": // Wait until the robot is near the first sample pickup position
+                if (pathTimer.getElapsedTime() > 2000) {
+                    claw.setPosition(0);
+                    setPathState("five");
                 }
                 break;
             case "five":
@@ -175,7 +223,7 @@ public class JuliannaBucket extends OpMode {
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
                     follower.followPath(slurp3,true);
-                    setPathState("3rd slurp");
+                    setPathState("six");
                 }
                 break;
             case "six":
@@ -185,7 +233,20 @@ public class JuliannaBucket extends OpMode {
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
                     follower.followPath(score3, true);
-                    setPathState("4th score");
+                    setPathState("adjust arm 4");
+                }
+                break;
+            case "adjust arm 4":
+                if (grabMotorL.getCurrentPosition() == bucketSlidePos) {
+                    turnClaw.setPosition(0.5);
+                    setPathState("adjust claw 4");
+                }
+                break;
+
+            case "adjust claw 4": // Wait until the robot is near the first sample pickup position
+                if (pathTimer.getElapsedTime() > 2000) {
+                    claw.setPosition(0);
+                    setPathState("seven");
                 }
                 break;
             case "seven":
@@ -194,7 +255,7 @@ public class JuliannaBucket extends OpMode {
                     follower.followPath(park, true);
                     setPathState("park");
                 }
-            case "eight":
+            case "park":
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
                     /* Level 1 Ascent */
@@ -285,7 +346,7 @@ public class JuliannaBucket extends OpMode {
     @Override
     public void start() {
         opmodeTimer.resetTimer();
-        setPathState("zero");
+        setPathState("Move to bucket: init");
     }
 
     /** We do not use this because everything should automatically disable **/

@@ -50,7 +50,7 @@ public class RedBucket extends OpMode {
 
 
     String pathState = "init";
-    private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
+    private final Pose startPose = new Pose(138, 31, Math.toRadians(0));
     private final Pose bucketPose = new Pose(5.6, 16.42, Math.toRadians(315));
     private final Pose nPose = new Pose(6.05, 12.67, Math.toRadians(0));
 
