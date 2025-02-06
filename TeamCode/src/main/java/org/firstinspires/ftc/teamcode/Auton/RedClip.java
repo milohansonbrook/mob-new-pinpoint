@@ -55,9 +55,21 @@ public class RedClip extends OpMode {
     String pathState = "init";
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
     private final Pose clipPose = new Pose(23.8, 13.1, Math.toRadians(0));
+    private final Pose prePush1 = new Pose(47.8, -32, Math.toRadians(0));
+    private final Pose helper = new Pose(21.5, -11, Math.toRadians(0));
+    private final Pose set1 = new Pose(46, -22, Math.toRadians(0));
+    private final Pose observe1 = new Pose(7.7, -30, Math.toRadians(0));
+    private final Pose set2 = new Pose(47, -30, Math.toRadians(0));
+    private final Pose prePush2 = new Pose(46.5, -40.6, Math.toRadians(0));
+    private final Pose observe2 = new Pose(10.5, -38.3, Math.toRadians(0));
+    private final Pose set3 = new Pose(47.3, -41, Math.toRadians(0));
+    private final Pose prePush3 = new Pose(46.7, -46, Math.toRadians(0));
+    private final Pose observe3 = new Pose(11.3, -45, Math.toRadians(0));
+    private final Pose grabPos = new Pose(1.8, -37.5, Math.toRadians(0));
+
 
     private Follower follower;
-    private PathChain bar1, next, grabPickup2, grabPickup3, scorePickup1, scorePickup2, scorePickup3;
+    private PathChain bar1, pushThings, otherBar;
     Timer opmodeTimer;
     Timer pathTimer;
 
@@ -148,7 +160,33 @@ public class RedClip extends OpMode {
                 .addPath(new BezierLine(new Point(startPose), new Point(clipPose)))
                 .setLinearHeadingInterpolation(startPose.getHeading(), clipPose.getHeading())
                 .build();
-
+        pushThings = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(clipPose), new Point(helper)))
+                .setLinearHeadingInterpolation(clipPose.getHeading(), helper.getHeading())
+                .addBezierLine(new Point(helper), new Point(set1))
+                .setLinearHeadingInterpolation(helper.getHeading(), set1.getHeading())
+                .addBezierLine(new Point(set1), new Point(prePush1))
+                .setLinearHeadingInterpolation(set1.getHeading(), prePush1.getHeading())
+                .addBezierLine(new Point(prePush1), new Point(observe1))
+                .setLinearHeadingInterpolation(prePush1.getHeading(), observe1.getHeading())
+                .addBezierLine(new Point(observe1), new Point(set2))
+                .setLinearHeadingInterpolation(observe1.getHeading(), set2.getHeading())
+                .addBezierLine(new Point(set2), new Point(prePush2))
+                .setLinearHeadingInterpolation(set2.getHeading(), prePush2.getHeading())
+                .addBezierLine(new Point(prePush2), new Point(observe2))
+                .setLinearHeadingInterpolation(prePush2.getHeading(), observe2.getHeading())
+                .addBezierLine(new Point(observe2), new Point(set3))
+                .setLinearHeadingInterpolation(observe2.getHeading(), set3.getHeading())
+                .addBezierLine(new Point(set3), new Point(prePush3))
+                .setLinearHeadingInterpolation(set3.getHeading(), prePush3.getHeading())
+                .addBezierLine(new Point(prePush3), new Point(observe3))
+                .setLinearHeadingInterpolation(prePush3.getHeading(), observe3.getHeading())
+                .addBezierLine(new Point(observe3), new Point(grabPos))
+                .setLinearHeadingInterpolation(observe3.getHeading(), grabPos.getHeading())
+                .build();
+        otherBar = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(), new Point()))
+                .build();
     }
 
         public void autonomousPathUpdate() {
