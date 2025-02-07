@@ -205,6 +205,8 @@ public class RedClip extends OpMode {
         bar5 = follower.pathBuilder()
                 .addPath(new BezierLine(new Point(grabPos), new Point(clip1)))
                 .setLinearHeadingInterpolation(grabPos.getHeading(), clip1.getHeading())
+                .addBezierLine(new Point(clip1), new Point(grabPos))
+                .setLinearHeadingInterpolation(clip1.getHeading(), grabPos.getHeading())
                 .build();
     }
     public void setBarPose(double pose){
@@ -214,27 +216,55 @@ public class RedClip extends OpMode {
     public void clip(){
         grabMotorR.setTargetPosition(200);
         grabMotorL.setTargetPosition(200);
+        lShoulder.setPosition(0.95);
+        rShoulder.setPosition(0.05);
+        wrist.setPosition(0.5);
+        claw.setPosition(0.7);
+
+
+    }
+    public void clipDown()
+    {
+        wrist.setPosition(0.6);
+        lShoulder.setPosition(0.5);
+        rShoulder.setPosition(0.5);
+        claw.setPosition(0.1);
+        grabMotorR.setTargetPosition(10);
+        grabMotorL.setTargetPosition(10);
+    }
+    public void grab()
+    {
+
     }
         public void autonomousPathUpdate() {
             switch (pathState) {
                 case "move to bar":
-                    setBarPose(1);
-                    turnSlurp.setPosition(0.4);
+                    //setBarPose(1);
+                    follower.followPath(bar1, true);
+                    //turnSlurp.setPosition(0.4);
                     //follower.followPath(bar1, true);
-                    wrist.setPosition(0);
-                    clip();
+                    //wrist.setPosition(0);
+                    //clip();
                     setPathState("clip");
                     break;
 
                 case "clip":
-                    /*
+
                     if (!follower.isBusy()){
                         clip();
                    }
-
-                     */
+                    setPathState("unclip");
                     break;
-
+                case "unclip":
+                    clipDown();
+                    setPathState("Push Stuff");
+                    break;
+                case "Push Stuff":
+                    if (!follower.isBusy()){
+                        follower.followPath(push1, true);
+                    }
+                    setPathState("grab");
+                    break;
             }
         }
         public void setPathState (String pState){
