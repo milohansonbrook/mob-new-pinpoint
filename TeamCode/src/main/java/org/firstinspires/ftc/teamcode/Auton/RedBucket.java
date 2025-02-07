@@ -47,6 +47,7 @@ public class RedBucket extends OpMode {
     public static int bucketRetractWait = 400;
     public static int bucketDownWait = 400;
     public static int clawCloseWait = 700;
+    public static int clawCloseWaitLast = 1800;
 
     public static double slurpLowerBound = 0.21;
     public static double slurpUpperBound = 0.65;
@@ -68,9 +69,9 @@ public class RedBucket extends OpMode {
     public static double retractBarL = 1;
     public static double retractBarR = 0;
 
-    public static double sample3x = 13;
-    public static double sample3y = 22;
-    public static double sample3heading = 22;
+    public static double sample3x = 20.4;
+    public static double sample3y = 6.7;
+    public static double sample3heading = 56.7;
 
 
     public static int bucketSlidePos = 850;
@@ -396,8 +397,7 @@ public class RedBucket extends OpMode {
                 break;
 
             case "grab 3":
-                if (pathTimer.getElapsedTime() > clawCloseWait) {
-                    slurp.setPower(0);
+                if (pathTimer.getElapsedTime() > clawCloseWaitLast) {
                     claw.setPosition(clawClose);
                     turnSlurp.setPosition(0.5);
                     setPathState("wrist switch 3");
@@ -416,6 +416,7 @@ public class RedBucket extends OpMode {
                 if (bucketFinished){
                     bucketFinished = false;
                     setPathState("park");
+                    slurp.setPower(0);
                 }
                 break;
         }

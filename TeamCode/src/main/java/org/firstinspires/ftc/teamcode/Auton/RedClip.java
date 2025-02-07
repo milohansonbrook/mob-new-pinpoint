@@ -34,42 +34,50 @@ public class RedClip extends OpMode {
     DcMotor grabMotorL;
     DcMotor grabMotorR;
 
+    //Waits
+    public static int clawWait = 1000;
+
     //technical poses
     public static double slurpLowerBound = 0.19;
     public static double slurpUpperBound = 0.65;
     public static double armMidPosL = 0.7;
     public static double armMidPosR = (1 - armMidPosL);
+    public static double barDown = 0.5;
     public static double wristUp = 1;
-    public static double wristStraight = 0.5;
+    public static double wristStraight = 0.4;
     public static double clawClose = 1;
+    public static double clawOpen = 0;
+    public static int slideClipPose1 = 250;
+    public static int slideClipPose2 = 650;
+    public static double startSlurp = 0.35;
 
     //drive poses
-    public static double clipPoseX;
-    public static double clipPoseY;
+    public static double clipPoseX = 25;
+    public static double clipPoseY = 11.1;
     public static double clipPoseHeading;
 
     String pathState = "init";
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
-    private final Pose clip1 = new Pose(23.8, 11.1, Math.toRadians(0));
+    private final Pose clip1 = new Pose(clipPoseX, clipPoseY, Math.toRadians(0));
     private final Pose clip2 = new Pose(23.8, 13.1, Math.toRadians(0));
     private final Pose clip3 = new Pose(23.8, 15.1, Math.toRadians(0));
     private final Pose clip4 = new Pose(23.8, 17.1, Math.toRadians(0));
     private final Pose clip5 = new Pose(23.8, 19.1, Math.toRadians(0));
     private final Pose prePush1 = new Pose(47.8, -32, Math.toRadians(0)); //front
-    private final Pose helper = new Pose(21.5, -11, Math.toRadians(0)); //like near post
+    private final Pose helper = new Pose(21.5, -14, Math.toRadians(0)); //like near post
     private final Pose set1 = new Pose(46, -22, Math.toRadians(0)); //left front of samples
     private final Pose observe1 = new Pose(7.7, -30, Math.toRadians(0)); //ob zone
     private final Pose set2 = new Pose(47, -30, Math.toRadians(0));
-    private final Pose prePush2 = new Pose(46.5, -40.6, Math.toRadians(0));
-    private final Pose observe2 = new Pose(10.5, -38.3, Math.toRadians(0));
-    private final Pose set3 = new Pose(47.3, -41, Math.toRadians(0));
-    private final Pose prePush3 = new Pose(46.7, -46, Math.toRadians(0));
-    private final Pose observe3 = new Pose(11.3, -45, Math.toRadians(0));
+    private final Pose prePush2 = new Pose(46.5, -33, Math.toRadians(0));
+    private final Pose observe2 = new Pose(10.5, -33, Math.toRadians(0));
+    private final Pose set3 = new Pose(47.3, -33, Math.toRadians(0));
+    private final Pose prePush3 = new Pose(46.7, -36, Math.toRadians(0));
+    private final Pose observe3 = new Pose(11.3, -36, Math.toRadians(0));
     private final Pose grabPos = new Pose(1.8, -37.5, Math.toRadians(0));
 
 
     private Follower follower;
-    private PathChain bar1, push1, push2, push3, bar2, bar3, bar4, bar5;
+    private PathChain bar1, pushPoint1, pushPoint2, pushPoint3, pushPoint4, pushPoint5, pushPoint6, pushPoint7, pushPoint8, pushPoint9, pushPoint10;
     Timer opmodeTimer;
     Timer pathTimer;
 
@@ -149,121 +157,135 @@ public class RedClip extends OpMode {
     @Override
     public void start() {
         opmodeTimer.resetTimer();
-        setPathState("move to bar");
+        setPathState("set slurp");
     }
 
     public void buildPaths() {
         // Path for scoring preload
-//        scorePreload = new Path(new BezierLine(new Point(startPose), new Point(scorePose)));
-//        scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
         bar1 = follower.pathBuilder()
                 .addPath(new BezierLine(new Point(startPose), new Point(clip1)))
                 .setLinearHeadingInterpolation(startPose.getHeading(), clip1.getHeading())
                 .build();
-        push1 = follower.pathBuilder()
+        pushPoint1 = follower.pathBuilder()
                 .addPath(new BezierLine(new Point(clip1), new Point(helper)))
                 .setLinearHeadingInterpolation(clip1.getHeading(), helper.getHeading())
-                .addBezierLine(new Point(helper), new Point(set1))
+                .build();
+        pushPoint2 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(helper), new Point(set1)))
                 .setLinearHeadingInterpolation(helper.getHeading(), set1.getHeading())
-                .addBezierLine(new Point(set1), new Point(prePush1))
+                .build();
+        pushPoint3 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(set1), new Point(prePush1)))
                 .setLinearHeadingInterpolation(set1.getHeading(), prePush1.getHeading())
-                .addBezierLine(new Point(prePush1), new Point(observe1))
+                .build();
+        pushPoint4 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(prePush1), new Point(observe1)))
                 .setLinearHeadingInterpolation(prePush1.getHeading(), observe1.getHeading())
-                .addBezierLine(new Point(observe1), new Point(set2))
+                .build();
+        pushPoint5 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(observe1), new Point(set2)))
                 .setLinearHeadingInterpolation(observe1.getHeading(), set2.getHeading())
-                .addBezierLine(new Point(set2), new Point(prePush2))
+                .build();
+        pushPoint6 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(set2), new Point(prePush2)))
                 .setLinearHeadingInterpolation(set2.getHeading(), prePush2.getHeading())
-                .addBezierLine(new Point(prePush2), new Point(observe2))
+                .build();
+        pushPoint7 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(prePush2), new Point(observe2)))
                 .setLinearHeadingInterpolation(prePush2.getHeading(), observe2.getHeading())
-                .addBezierLine(new Point(observe2), new Point(set3))
+                .build();
+        pushPoint8 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(observe2), new Point(set3)))
                 .setLinearHeadingInterpolation(observe2.getHeading(), set3.getHeading())
-                .addBezierLine(new Point(set3), new Point(prePush3))
+                .build();
+        pushPoint9 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(set3), new Point(prePush3)))
                 .setLinearHeadingInterpolation(set3.getHeading(), prePush3.getHeading())
-                .addBezierLine(new Point(prePush3), new Point(observe3))
+                .build();
+        pushPoint10 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(prePush3), new Point(observe3)))
                 .setLinearHeadingInterpolation(prePush3.getHeading(), observe3.getHeading())
-                .addBezierLine(new Point(observe3), new Point(grabPos))
-                .setLinearHeadingInterpolation(observe3.getHeading(), grabPos.getHeading())
-                .build();
-        bar2 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(grabPos), new Point(clip1)))
-                .setLinearHeadingInterpolation(grabPos.getHeading(), clip1.getHeading())
-                .addPath(new BezierLine(new Point(clip1), new Point(grabPos)))
-                .setLinearHeadingInterpolation(clip1.getHeading(), grabPos.getHeading())
-                .build();
-        bar3 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(grabPos), new Point(clip1)))
-                .setLinearHeadingInterpolation(grabPos.getHeading(), clip1.getHeading())
-                .addPath(new BezierLine(new Point(clip1), new Point(grabPos)))
-                .setLinearHeadingInterpolation(clip1.getHeading(), grabPos.getHeading())
-                .build();
-        bar4 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(grabPos), new Point(clip1)))
-                .setLinearHeadingInterpolation(grabPos.getHeading(), clip1.getHeading())
-                .addPath(new BezierLine(new Point(clip1), new Point(grabPos)))
-                .setLinearHeadingInterpolation(clip1.getHeading(), grabPos.getHeading())
-                .build();
-        bar5 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(grabPos), new Point(clip1)))
-                .setLinearHeadingInterpolation(grabPos.getHeading(), clip1.getHeading())
-                .addBezierLine(new Point(clip1), new Point(grabPos))
-                .setLinearHeadingInterpolation(clip1.getHeading(), grabPos.getHeading())
                 .build();
     }
     public void setBarPose(double pose){
         lShoulder.setPosition(pose);
         rShoulder.setPosition(1 - pose);
     }
-    public void clip(){
-        grabMotorR.setTargetPosition(200);
-        grabMotorL.setTargetPosition(200);
-        lShoulder.setPosition(0.95);
-        rShoulder.setPosition(0.05);
-        wrist.setPosition(0.5);
-        claw.setPosition(0.7);
-
-
+    public void setVertSlide(int pose){
+        grabMotorL.setTargetPosition(pose);
+        grabMotorR.setTargetPosition(pose);
     }
-    public void clipDown()
-    {
-        wrist.setPosition(0.6);
-        lShoulder.setPosition(0.5);
-        rShoulder.setPosition(0.5);
-        claw.setPosition(0.1);
-        grabMotorR.setTargetPosition(10);
-        grabMotorL.setTargetPosition(10);
-    }
-    public void grab()
-    {
 
-    }
         public void autonomousPathUpdate() {
             switch (pathState) {
+                case "set slurp":
+                    turnSlurp.setPosition(startSlurp);
+                    setPathState("move to bar");
+                    break;
+
                 case "move to bar":
-                    //setBarPose(1);
-                    follower.followPath(bar1, true);
-                    //turnSlurp.setPosition(0.4);
-                    //follower.followPath(bar1, true);
-                    //wrist.setPosition(0);
-                    //clip();
-                    setPathState("clip");
+                    if (pathTimer.getElapsedTime() > 300) {
+                        setBarPose(1);
+                        wrist.setPosition(wristStraight);
+                        setVertSlide(slideClipPose1);
+                        follower.followPath(bar1, true);
+                        setPathState("clip");
+                    }
                     break;
 
                 case "clip":
-
-                    if (!follower.isBusy()){
-                        clip();
-                   }
-                    setPathState("unclip");
-                    break;
-                case "unclip":
-                    clipDown();
-                    setPathState("Push Stuff");
-                    break;
-                case "Push Stuff":
-                    if (!follower.isBusy()){
-                        follower.followPath(push1, true);
+                    if (pathTimer.getElapsedTime() > 2000){
+                        setVertSlide(slideClipPose2);
+                        setPathState("open claw");
                     }
-                    setPathState("grab");
+                    break;
+
+                case "open claw":
+                    if (pathTimer.getElapsedTime() > clawWait){
+                        claw.setPosition(clawOpen);
+                        wrist.setPosition(wristUp);
+                        setBarPose(barDown);
+                        setPathState("move set");
+                    }
+                    break;
+
+                case "move set":
+                    setVertSlide(0);
+                    follower.followPath(pushPoint1, true);
+                    follower.followPath(pushPoint2, true);
+                    setPathState("yo");
+                    break;
+
+                case "yo":
+                    if (!follower.isBusy()) {
+                        follower.followPath(pushPoint3, true);
+                        follower.followPath(pushPoint4, true);
+                        setPathState("yoyo");
+                    }
+                    break;
+
+                case "yoyo":
+                    if (!follower.isBusy()) {
+                        follower.followPath(pushPoint5, true);
+                        follower.followPath(pushPoint6, true);
+                        setPathState("yoyoyo");
+                    }
+                    break;
+
+                case "yoyoyo":
+                    if (!follower.isBusy()) {
+                        follower.followPath(pushPoint7, true);
+                        follower.followPath(pushPoint8, true);
+                        setPathState("yoyoyoyo");
+                    }
+                    break;
+
+                case "yoyoyoyo":
+                    if (!follower.isBusy()) {
+                        follower.followPath(pushPoint9, true);
+                        follower.followPath(pushPoint10, true);
+                        setPathState("yoyoyoyoyo");
+                    }
                     break;
             }
         }
