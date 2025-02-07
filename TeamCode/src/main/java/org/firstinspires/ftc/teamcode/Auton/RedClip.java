@@ -1,18 +1,14 @@
 package org.firstinspires.ftc.teamcode.Auton;
 
-import org.firstinspires.ftc.teamcode.AutonPoses.RedClipPoses; //to use
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.BezierCurve;
 import com.pedropathing.pathgen.BezierLine;
-import com.pedropathing.pathgen.Path;
 import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
 import com.pedropathing.util.Constants;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -23,91 +19,86 @@ import com.qualcomm.robotcore.hardware.Servo;
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
-@Autonomous(name = "RedClip", group = "Autonomous")
+@Autonomous(name = "clippy clip", group = "Autonomous")
 @Config
 public class RedClip extends OpMode {
 
-    Servo intakeRight;
+    Servo turnSlurp;
     Servo claw;
-    Servo outtakeWrist;
-    Servo outtakeArmRight;
-    Servo outtakeArmLeft;
+    Servo wrist;
+    Servo rShoulder;
+    Servo lShoulder;
     Servo twoBarR;
     Servo twoBarL;
     CRServo slurp;
     DcMotor grabMotorL;
     DcMotor grabMotorR;
-    public static double slurpLowerBound = 0.195;
-    public static double slurpUpperBound = 0.6;
-    public static int clawHeight = 860;
-    public static double armMidPosL = 0.81;
+
+    //technical poses
+    public static double slurpLowerBound = 0.19;
+    public static double slurpUpperBound = 0.65;
+    public static double armMidPosL = 0.7;
     public static double armMidPosR = (1 - armMidPosL);
-    public static double wristMidPos = 0.5;
-    boolean intakeDown;
-    boolean aLast;
-    boolean clawState;
-    boolean armSequenceActive;
-    boolean armSequenceComplete;
-    boolean sampleSeqActive;
-    boolean sampleSeqComplete;
-    boolean yLast;
-    boolean jiggle;
-    boolean b2Last;
-    boolean halfSpeed;
-    double drivePower;
-    long sequenceStartTime = 0;
-    long sampleSeqStartTime = 0;
-    int armSequenceStep = 0;
-    int sampleSeqStep = 0;
+    public static double wristUp = 1;
+    public static double wristStraight = 0.5;
+    public static double clawClose = 1;
 
-    int pathState = 0;
+    //drive poses
+    public static double clipPoseX;
+    public static double clipPoseY;
+    public static double clipPoseHeading;
+
+    String pathState = "init";
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
-    private final Pose clipPose = new Pose(0, 0, Math.toRadians(0));
-    private final Pose nPose = new Pose(0, -18, Math.toRadians(0));
+    private final Pose clip1 = new Pose(23.8, 11.1, Math.toRadians(0));
+    private final Pose clip2 = new Pose(23.8, 13.1, Math.toRadians(0));
+    private final Pose clip3 = new Pose(23.8, 15.1, Math.toRadians(0));
+    private final Pose clip4 = new Pose(23.8, 17.1, Math.toRadians(0));
+    private final Pose clip5 = new Pose(23.8, 19.1, Math.toRadians(0));
+    private final Pose prePush1 = new Pose(47.8, -32, Math.toRadians(0)); //front
+    private final Pose helper = new Pose(21.5, -11, Math.toRadians(0)); //like near post
+    private final Pose set1 = new Pose(46, -22, Math.toRadians(0)); //left front of samples
+    private final Pose observe1 = new Pose(7.7, -30, Math.toRadians(0)); //ob zone
+    private final Pose set2 = new Pose(47, -30, Math.toRadians(0));
+    private final Pose prePush2 = new Pose(46.5, -40.6, Math.toRadians(0));
+    private final Pose observe2 = new Pose(10.5, -38.3, Math.toRadians(0));
+    private final Pose set3 = new Pose(47.3, -41, Math.toRadians(0));
+    private final Pose prePush3 = new Pose(46.7, -46, Math.toRadians(0));
+    private final Pose observe3 = new Pose(11.3, -45, Math.toRadians(0));
+    private final Pose grabPos = new Pose(1.8, -37.5, Math.toRadians(0));
 
-    // Starting position
-//    private final Pose scorePose = new Pose(14, 129, Math.toRadians(315)); // Scoring position
-//
-//    private final Pose pickup1Pose = new Pose(37, 121, Math.toRadians(0)); // First sample pickup
-//    private final Pose pickup2Pose = new Pose(43, 130, Math.toRadians(0)); // Second sample pickup
-//    private final Pose pickup3Pose = new Pose(49, 135, Math.toRadians(0)); // Third sample pickup
-//
-//    private final Pose parkPose = new Pose(60, 98, Math.toRadians(90));    // Parking position
-//    private final Pose parkControlPose = new Pose(60, 98, Math.toRadians(90)); // Control point for curved path
 
     private Follower follower;
-    private Path scorePreload, park;
-    private PathChain grabPickup1, next, grabPickup2, grabPickup3, scorePickup1, scorePickup2, scorePickup3;
+    private PathChain bar1, push1, push2, push3, bar2, bar3, bar4, bar5;
     Timer opmodeTimer;
     Timer pathTimer;
 
     @Override
     public void init() {
-        clawState = true;
 
-        intakeRight = hardwareMap.get(Servo.class, "intakeRight");
-        intakeRight.scaleRange(slurpLowerBound, slurpUpperBound);
-        intakeRight.setPosition(1);
+        turnSlurp = hardwareMap.get(Servo.class, "turnSlurp");
+        turnSlurp.scaleRange(slurpLowerBound, slurpUpperBound);
+        turnSlurp.setPosition(1);
 
         twoBarL = hardwareMap.get(Servo.class, "twoBarL");
-        twoBarL.scaleRange(0.425, 0.69);
+        twoBarL.scaleRange(0.425, 0.72);
         twoBarL.setPosition(1);
 
         twoBarR = hardwareMap.get(Servo.class, "twoBarR");
-        twoBarR.scaleRange(0.31, 0.575);
+        twoBarR.scaleRange(0.29, 0.585);
         twoBarR.setPosition(0);
 
-        outtakeWrist = hardwareMap.get(Servo.class, "outtakeWrist");
-        outtakeWrist.scaleRange(0, 1);
-        outtakeWrist.setPosition(wristMidPos);
+        wrist = hardwareMap.get(Servo.class, "turnClaw");
+        wrist.scaleRange(0, 1);
+        wrist.setPosition(wristUp);
 
-        outtakeArmRight = hardwareMap.get(Servo.class, "outtakeArmRight");
-        outtakeArmRight.scaleRange(0, 1);
-        outtakeArmRight.setPosition(armMidPosR);
+        rShoulder = hardwareMap.get(Servo.class, "rShoulder");
+        rShoulder.scaleRange(0, 1);
+        rShoulder.setPosition(armMidPosR);
 
-        outtakeArmLeft = hardwareMap.get(Servo.class, "outtakeArmLeft");
-        outtakeArmLeft.scaleRange(0, 1);
-        outtakeArmLeft.setPosition(armMidPosL);
+        lShoulder = hardwareMap.get(Servo.class, "lShoulder");
+        lShoulder.scaleRange(0, 1);
+        lShoulder.setPosition(armMidPosL);
 
         grabMotorL = hardwareMap.get(DcMotor.class, "grabMotorL");
         grabMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -124,11 +115,9 @@ public class RedClip extends OpMode {
 
         claw = hardwareMap.get(Servo.class, "claw");
         claw.scaleRange(0.525, 0.64);
-        claw.setPosition(0);
+        claw.setPosition(clawClose);
 
         slurp = hardwareMap.get(CRServo.class, "slurp");
-
-        halfSpeed = false;
 
         pathTimer = new Timer();
         opmodeTimer = new Timer();
@@ -147,7 +136,6 @@ public class RedClip extends OpMode {
         follower.update();
         autonomousPathUpdate();
 
-
         // Feedback to Driver Hub
         telemetry.addData("path state", pathState);
         telemetry.addData("x", follower.getPose().getX());
@@ -161,126 +149,95 @@ public class RedClip extends OpMode {
     @Override
     public void start() {
         opmodeTimer.resetTimer();
-        setPathState(0);
+        setPathState("move to bar");
     }
 
     public void buildPaths() {
         // Path for scoring preload
 //        scorePreload = new Path(new BezierLine(new Point(startPose), new Point(scorePose)));
 //        scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
-        grabPickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(startPose), new Point(clipPose)))
-                .setLinearHeadingInterpolation(startPose.getHeading(), clipPose.getHeading())
+        bar1 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(startPose), new Point(clip1)))
+                .setLinearHeadingInterpolation(startPose.getHeading(), clip1.getHeading())
                 .build();
-
-        next = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(clipPose), new Point(nPose)))
-                .setLinearHeadingInterpolation(clipPose.getHeading(), nPose.getHeading())
+        push1 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(clip1), new Point(helper)))
+                .setLinearHeadingInterpolation(clip1.getHeading(), helper.getHeading())
+                .addBezierLine(new Point(helper), new Point(set1))
+                .setLinearHeadingInterpolation(helper.getHeading(), set1.getHeading())
+                .addBezierLine(new Point(set1), new Point(prePush1))
+                .setLinearHeadingInterpolation(set1.getHeading(), prePush1.getHeading())
+                .addBezierLine(new Point(prePush1), new Point(observe1))
+                .setLinearHeadingInterpolation(prePush1.getHeading(), observe1.getHeading())
+                .addBezierLine(new Point(observe1), new Point(set2))
+                .setLinearHeadingInterpolation(observe1.getHeading(), set2.getHeading())
+                .addBezierLine(new Point(set2), new Point(prePush2))
+                .setLinearHeadingInterpolation(set2.getHeading(), prePush2.getHeading())
+                .addBezierLine(new Point(prePush2), new Point(observe2))
+                .setLinearHeadingInterpolation(prePush2.getHeading(), observe2.getHeading())
+                .addBezierLine(new Point(observe2), new Point(set3))
+                .setLinearHeadingInterpolation(observe2.getHeading(), set3.getHeading())
+                .addBezierLine(new Point(set3), new Point(prePush3))
+                .setLinearHeadingInterpolation(set3.getHeading(), prePush3.getHeading())
+                .addBezierLine(new Point(prePush3), new Point(observe3))
+                .setLinearHeadingInterpolation(prePush3.getHeading(), observe3.getHeading())
+                .addBezierLine(new Point(observe3), new Point(grabPos))
+                .setLinearHeadingInterpolation(observe3.getHeading(), grabPos.getHeading())
                 .build();
-
-//        scorePickup1 = follower.pathBuilder()
-//                .addPath(new BezierLine(new Point(pickup1Pose), new Point(scorePose)))
-//                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
-//                .build();
-//        grabPickup2 = follower.pathBuilder()
-//                .addPath(new BezierLine(new Point(scorePose), new Point(pickup2Pose)))
-//                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2Pose.getHeading())
-//                .build();
-//
-//        scorePickup2 = follower.pathBuilder()
-//                .addPath(new BezierLine(new Point(pickup2Pose), new Point(scorePose)))
-//                .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePose.getHeading())
-//                .build();
-//
-//        grabPickup3 = follower.pathBuilder()
-//                .addPath(new BezierLine(new Point(scorePose), new Point(pickup3Pose)))
-//                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup3Pose.getHeading())
-//                .build();
-//
-//        scorePickup3 = follower.pathBuilder()
-//                .addPath(new BezierLine(new Point(pickup3Pose), new Point(scorePose)))
-//                .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePose.getHeading())
-//                .build();
-//
-//        park = new Path(new BezierCurve(new Point(scorePose), new Point(parkControlPose), new Point(parkPose)));
-//        park.setLinearHeadingInterpolation(scorePose.getHeading(), parkPose.getHeading());
+        bar2 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(grabPos), new Point(clip1)))
+                .setLinearHeadingInterpolation(grabPos.getHeading(), clip1.getHeading())
+                .addPath(new BezierLine(new Point(clip1), new Point(grabPos)))
+                .setLinearHeadingInterpolation(clip1.getHeading(), grabPos.getHeading())
+                .build();
+        bar3 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(grabPos), new Point(clip1)))
+                .setLinearHeadingInterpolation(grabPos.getHeading(), clip1.getHeading())
+                .addPath(new BezierLine(new Point(clip1), new Point(grabPos)))
+                .setLinearHeadingInterpolation(clip1.getHeading(), grabPos.getHeading())
+                .build();
+        bar4 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(grabPos), new Point(clip1)))
+                .setLinearHeadingInterpolation(grabPos.getHeading(), clip1.getHeading())
+                .addPath(new BezierLine(new Point(clip1), new Point(grabPos)))
+                .setLinearHeadingInterpolation(clip1.getHeading(), grabPos.getHeading())
+                .build();
+        bar5 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(grabPos), new Point(clip1)))
+                .setLinearHeadingInterpolation(grabPos.getHeading(), clip1.getHeading())
+                .build();
     }
-
+    public void setBarPose(double pose){
+        lShoulder.setPosition(pose);
+        rShoulder.setPosition(1 - pose);
+    }
+    public void clip(){
+        grabMotorR.setTargetPosition(200);
+        grabMotorL.setTargetPosition(200);
+    }
         public void autonomousPathUpdate() {
             switch (pathState) {
-                case 0: // Move from start to scoring position
-//                    intakeRight.setPosition(0.45);
-                    follower.followPath(next, true);
-//                    grabMotorL.setTargetPosition(375);
-//                    grabMotorR.setTargetPosition(375);
-//                    outtakeArmRight.setPosition(armMidPosR - 0.2);
-//                    outtakeArmLeft.setPosition(armMidPosL + 0.2);
-//                    outtakeWrist.setPosition(0.35);
-//                    setPathState(1);
+                case "move to bar":
+                    setBarPose(1);
+                    turnSlurp.setPosition(0.4);
+                    //follower.followPath(bar1, true);
+                    wrist.setPosition(0);
+                    clip();
+                    setPathState("clip");
                     break;
 
-//                case 1:
-//                    if (!follower.isBusy()) {
-//                        setPathState(2);
-//                    }
-//
-//                case 2: // Wait until the robot is near the first sample pickup position
-//                    if (pathTimer.getElapsedTime() > 2000) {
-//                        //follower.followPath(next, true);
-//                        setPathState(3);
-//                    }
-//                    break;
+                case "clip":
+                    /*
+                    if (!follower.isBusy()){
+                        clip();
+                   }
 
-//            case 2: // Wait until the robot is near the first sample pickup position
-//                if (!follower.isBusy()) {
-//                    follower.followPath(scorePickup1, true);
-//                    setPathState(3);
-//                }
-//                break;
-//
-//            case 3: // Wait until the robot returns to the scoring position
-//                if (!follower.isBusy()) {
-//                    follower.followPath(grabPickup2, true);
-//                    setPathState(4);
-//                }
-//                break;
-//
-//            case 4: // Wait until the robot is near the second sample pickup position
-//                if (!follower.isBusy()) {
-//                    follower.followPath(scorePickup2, true);
-//                    setPathState(5);
-//                }
-//                break;
-//
-//            case 5: // Wait until the robot returns to the scoring position
-//                if (!follower.isBusy()) {
-//                    follower.followPath(grabPickup3, true);
-//                    setPathState(6);
-//                }
-//                break;
-//
-//            case 6: // Wait until the robot is near the third sample pickup position
-//                if (!follower.isBusy()) {
-//                    follower.followPath(scorePickup3, true);
-//                    setPathState(7);
-//                }
-//                break;
-//
-//            case 7: // Wait until the robot returns to the scoring position
-//                if (!follower.isBusy()) {
-//                    follower.followPath(park, true);
-//                    setPathState(8);
-//                }
-//                break;
-//
-//            case 8: // Wait until the robot is near the parking position
-//                if (!follower.isBusy()) {
-//                    setPathState(-1); // End the autonomous routine
-//                }
-//                break;
+                     */
+                    break;
+
             }
         }
-        public void setPathState (int pState){
+        public void setPathState (String pState){
             pathState = pState;
             pathTimer.resetTimer();
         }
