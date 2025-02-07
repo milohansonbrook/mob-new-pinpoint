@@ -25,7 +25,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
-@Autonomous(name = "AlexBucket", group = "Autonomous")
+@Autonomous(name = "bucket the great", group = "Autonomous")
 @Config
 public class RedBucket extends OpMode {
 
@@ -321,11 +321,6 @@ public class RedBucket extends OpMode {
                     setBucketState("Move to bucket: init");
                 }
                 break;
-
-
-
-
-
 
             case "second sample":
                 follower.followPath(sample2Snag, true);

@@ -23,7 +23,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
-@Autonomous(name = "AlexClip", group = "Autonomous")
+@Autonomous(name = "clippy boy", group = "Autonomous")
 @Config
 public class RedClip extends OpMode {
 
@@ -38,12 +38,13 @@ public class RedClip extends OpMode {
     DcMotor grabMotorL;
     DcMotor grabMotorR;
 
-    //technical poses poses
+    //technical poses
     public static double slurpLowerBound = 0.195;
     public static double slurpUpperBound = 0.65;
-    public static double armMidPosL = 0.81;
+    public static double armMidPosL = 0.7;
     public static double armMidPosR = (1 - armMidPosL);
-    public static double wristMidPos = 0.5;
+    public static double wristUp = 1;
+    public static double wristStraight = 0.5;
     public static double clawClose = 1;
 
     //drive poses
@@ -90,7 +91,7 @@ public class RedClip extends OpMode {
 
         wrist = hardwareMap.get(Servo.class, "turnClaw");
         wrist.scaleRange(0, 1);
-        wrist.setPosition(0.5);
+        wrist.setPosition(wristUp);
 
         rShoulder = hardwareMap.get(Servo.class, "rShoulder");
         rShoulder.scaleRange(0, 1);
@@ -188,12 +189,17 @@ public class RedClip extends OpMode {
                 .addPath(new BezierLine(new Point(), new Point()))
                 .build();
     }
-
+    public void setBarPose(double pose){
+        lShoulder.setPosition(pose);
+        rShoulder.setPosition(1-pose);
+    }
         public void autonomousPathUpdate() {
             switch (pathState) {
                 case "move to bar":
-                    turnSlurp.setPosition(0.5);
+                    setBarPose(1);
+                    turnSlurp.setPosition(0.4);
                     follower.followPath(bar1, true);
+                    wrist.setPosition(0);
                     setPathState("clip");
                     break;
 
