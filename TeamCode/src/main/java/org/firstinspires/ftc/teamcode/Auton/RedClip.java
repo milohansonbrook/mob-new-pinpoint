@@ -48,7 +48,6 @@ public class RedClip extends OpMode {
     public static double clipPoseY;
     public static double clipPoseHeading;
 
-
     String pathState = "init";
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
     private final Pose clip1 = new Pose(23.8, 11.1, Math.toRadians(0));

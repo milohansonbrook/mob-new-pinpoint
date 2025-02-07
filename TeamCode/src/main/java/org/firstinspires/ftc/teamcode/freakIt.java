@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 public class freakIt extends LinearOpMode {
     private DcMotor grabMotorL;
     private DcMotor grabMotorR;
+
     @Override
     public void runOpMode() throws InterruptedException {
         grabMotorL = hardwareMap.get(DcMotor.class, "grabMotorL");
