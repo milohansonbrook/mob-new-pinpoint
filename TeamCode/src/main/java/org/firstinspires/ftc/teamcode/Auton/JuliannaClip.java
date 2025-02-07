@@ -20,7 +20,7 @@ import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
 @Config
-@Autonomous (name="Auton Specimen Red", group = "Autonomous")
+@Autonomous (name="snag snag snag", group = "Autonomous")
 public class JuliannaClip extends OpMode {
 
     private Follower follower;

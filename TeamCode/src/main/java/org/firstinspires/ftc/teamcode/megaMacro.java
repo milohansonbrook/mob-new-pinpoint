@@ -113,12 +113,19 @@ public class megaMacro extends LinearOpMode {
         follower.startTeleopDrive();
         while (opModeIsActive()) {
             if (gamepad1.a){
-                claw.setPosition(1);
-                grabMotorL.setTargetPosition(clawHeight);
-                grabMotorR.setTargetPosition(clawHeight);
+                setBarPose(1);
+                turnSlurp.setPosition(0.4);
+                turnClaw.setPosition(0);
+                grabMotorR.setTargetPosition(200);
+                grabMotorL.setTargetPosition(200);
             }
 
             telemetry.addData("here: ", turnSlurp.getPosition());
         }
+
+    }
+    public void setBarPose(double pose){
+        lShoulder.setPosition(pose);
+        rShoulder.setPosition(1 - pose);
     }
 }
