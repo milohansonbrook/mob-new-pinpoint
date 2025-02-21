@@ -39,7 +39,7 @@ public class AlexBond2 extends LinearOpMode {
         while( opModeIsActive()){
             if(gamepad1.right_trigger > 0.1) {
                 one.setPosition(one.getPosition());
-            }
+           }
         }
 
     }
