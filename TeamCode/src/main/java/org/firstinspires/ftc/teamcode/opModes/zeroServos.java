@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 @Config
 public class zeroServos extends LinearOpMode {
     Servo one;
-    Servo two
+    Servo two;
 
     @Override
     public void runOpMode() throws InterruptedException {
