@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.*;
 
 @TeleOp
-public class cuddleTeamLeader extends LinearOpMode {
+public class ctl2 extends LinearOpMode {
     Servo intakeRight;
     Servo claw;
     Servo outtakeWrist;
