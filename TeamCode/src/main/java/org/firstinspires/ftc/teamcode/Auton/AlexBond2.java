@@ -110,7 +110,7 @@ public class AlexBond2 extends LinearOpMode {
 
                 if (specimenElapsedTime >= 1250)
                 {
-                    intakeElbow.setPosition(elbowUp);
+                     intakeElbow.setPosition(elbowUp);
                 }
 
 
