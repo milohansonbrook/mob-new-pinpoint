@@ -109,8 +109,7 @@ public class AlexBond2 extends LinearOpMode {
             }
             if (gamepad1.dpad_down) {
                 intakeClaw.setPosition(intakeClaw.getPosition() - clawInterval);
-            }
-            else if (gamepad1.x) {
+            } else if (gamepad1.x) {
                 // down facing elbow position
                 intakeElbow.setPosition(elbowHunting);
             } else if (gamepad1.b) {
@@ -118,7 +117,7 @@ public class AlexBond2 extends LinearOpMode {
                 intakeElbow.setPosition(elbowUp);
             }
             if (gamepad1.a) {
-             // claw open
+                // claw open
                 intakeSequence = 0;
 
             }
@@ -142,54 +141,52 @@ public class AlexBond2 extends LinearOpMode {
                 outtakeElbow.setPosition(outtakeElbow.getPosition() + 0.005);
             }
 
-            if(gamepad2.x) {
+            if (gamepad2.x) {
                 shoulderR.setPosition(shoulderR.getPosition() - shoulderInterval);
                 shoulderL.setPosition(shoulderL.getPosition() + shoulderInterval);
             }
-            if(gamepad2.b) {
+            if (gamepad2.b) {
                 shoulderR.setPosition(shoulderR.getPosition() + shoulderInterval);
                 shoulderL.setPosition(shoulderL.getPosition() - shoulderInterval);
             }
 
             //TRANSFER SEQUENCE BELOW
 
-if (gamepad1.y) {
-    if (transferSequenceActive && !transferSequenceCompleted) {
-        long transferElapsedTime = (long) (System.currentTimeMillis() - transferSequenceStartTime);
+            if (gamepad1.y) {
+                if (transferSequenceActive && !transferSequenceCompleted) {
+                    long transferElapsedTime = (long) (System.currentTimeMillis() - transferSequenceStartTime);
 
-        switch (transferSequenceStep) {
+                    switch (transferSequenceStep) {
 
-            //point elbow down when over sample
-            case 0:
-                intakeElbow.setPosition(elbowDown);
-              //  intakeClaw.setPosition(0.35);
-                if (transferElapsedTime >= 4000) {
-                    transferSequenceStep++;
-                    transferSequenceStartTime = System.currentTimeMillis();
-                }
-                break;
+                        //point elbow down when over sample
+                        case 0:
+                            intakeElbow.setPosition(elbowDown);
+                            //  intakeClaw.setPosition(0.35);
+                            if (transferElapsedTime >= 4000) {
+                                transferSequenceStep++;
+                                transferSequenceStartTime = System.currentTimeMillis();
+                            }
+                            break;
 
-            //close claw
-            case 1:
-                intakeClaw.setPosition(clawClose);
-                if (transferElapsedTime >= 1000) {
-                    transferSequenceStep++;
-                    transferSequenceStartTime = System.currentTimeMillis();
-                }
-                break;
+                        //close claw
+                        case 1:
+                            intakeClaw.setPosition(clawClose);
+                            if (transferElapsedTime >= 1000) {
+                                transferSequenceStep++;
+                                transferSequenceStartTime = System.currentTimeMillis();
+                            }
+                            break;
 
-            //bring piece into bot for transfer
-            case 2:
-                intakeWrist.setPosition(wristHoriz);
-                intakeElbow.setPosition(elbowUp);
-                break;
+                        //bring piece into bot for transfer
+                        case 2:
+                            intakeWrist.setPosition(wristHoriz);
+                            intakeElbow.setPosition(elbowUp);
+                            break;
 
-                    //case 2:
-
-
+                        //case 2:
 
 
-                }
+                    }
 /*
                 if (specimenSequenceActive && !specimenSequenceComplete) {
                     long specimenElapsedTime = System.currentTimeMillis() - specimenSequenceStartTime;
@@ -222,9 +219,10 @@ if (gamepad1.y) {
                 }
 
             */
+                }
+
+
             }
-
-
         }
     }
 }
