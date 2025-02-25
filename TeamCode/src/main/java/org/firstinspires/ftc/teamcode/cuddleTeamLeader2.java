@@ -69,7 +69,7 @@ public class cuddleTeamLeader2 extends LinearOpMode {
         twoBarL.setPosition(1);
 
         twoBarR = hardwareMap.get(Servo.class, "twoBarR");
-        twoBarR.scaleRange(0.29, 0.585);
+        twoBarR.scaleRange(0.31, 0.575);
         twoBarR.setPosition(0);
 
         turnClaw = hardwareMap.get(Servo.class, "turnClaw");
