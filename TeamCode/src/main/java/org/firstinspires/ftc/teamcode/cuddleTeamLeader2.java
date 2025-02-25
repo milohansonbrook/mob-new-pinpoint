@@ -14,7 +14,7 @@ import pedroPathing.constants.LConstants;
 
 @TeleOp
 @Config
-public class cuddleTeamLeader extends LinearOpMode {
+public class cuddleTeamLeader2 extends LinearOpMode {
     Servo turnSlurp;
     Servo claw;
     Servo turnClaw;
