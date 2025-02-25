@@ -13,6 +13,7 @@ public class AlexBond2 extends LinearOpMode {
     public double barInterval = 0.007;
     public double wristInterval = 0.005;
     public double clawInterval = 0.005;
+    public double shoulderInterval = 0.005;
     public double elbowDown = 0.75;
     public double elbowHunting = 0.70;
     public double elbowUp = 0.23;
@@ -56,10 +57,10 @@ public class AlexBond2 extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         intakeBarL = hardwareMap.get(Servo.class, "intakeBarL");
-        intakeBarL.scaleRange(0.35, 0.65);
+        intakeBarL.scaleRange(0.35, 0.67);
         intakeBarL.setPosition(1);
         intakeBarR = hardwareMap.get(Servo.class, "intakeBarR");
-        intakeBarR.scaleRange(0.35, 0.65);
+        intakeBarR.scaleRange(0.33, 0.65);
         intakeBarR.setPosition(0);
 
         intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
@@ -72,7 +73,7 @@ public class AlexBond2 extends LinearOpMode {
         outtakeClaw = hardwareMap.get(Servo.class, "outtakeClaw");
         outtakeClaw.setPosition(0.5);
         outtakeWrist = hardwareMap.get(Servo.class, "outtakeWrist");
-        outtakeWrist.setPosition(0.5);
+        outtakeWrist.setPosition(0.55);
         outtakeElbow = hardwareMap.get(Servo.class, "outtakeElbow");
         outtakeElbow.setPosition(0.5);
         shoulderL = hardwareMap.get(Servo.class, "shoulderL");
@@ -87,12 +88,12 @@ public class AlexBond2 extends LinearOpMode {
 //TWO BAR ADJUSTMENT________________________________________________________________________
 
         while (opModeIsActive()) {
-            if (gamepad1.right_trigger > 0.1) {
-                intakeBarL.setPosition(intakeBarL.getPosition() + barInterval * gamepad1.right_trigger);
-                intakeBarR.setPosition(intakeBarR.getPosition() - barInterval * gamepad1.right_trigger);
-            } else if (gamepad1.left_trigger > 0.1) {
-                intakeBarL.setPosition(intakeBarL.getPosition() - barInterval * gamepad1.left_trigger);
-                intakeBarR.setPosition(intakeBarR.getPosition() + barInterval * gamepad1.left_trigger);
+            if (gamepad1.left_trigger > 0.1) {
+                intakeBarL.setPosition(intakeBarL.getPosition() + barInterval * gamepad1.left_trigger);
+                intakeBarR.setPosition(intakeBarR.getPosition() - barInterval * gamepad1.left_trigger);
+            } else if (gamepad1.right_trigger > 0.1) {
+                intakeBarL.setPosition(intakeBarL.getPosition() - barInterval * gamepad1.right_trigger);
+                intakeBarR.setPosition(intakeBarR.getPosition() + barInterval * gamepad1.right_trigger);
             }
 
 //INTAKE ADJUSTMENT________________________________________________________________________
@@ -121,7 +122,33 @@ public class AlexBond2 extends LinearOpMode {
 
             }
 //OUTTAKE ADJUSTMENT________________________________________________________________________
+            if (gamepad2.dpad_left) {
+                outtakeWrist.setPosition(outtakeWrist.getPosition() + wristInterval);
+            }
+            if (gamepad2.dpad_right) {
+                outtakeWrist.setPosition(outtakeWrist.getPosition() - wristInterval);
+            }
+            if (gamepad2.dpad_up) {
+                outtakeClaw.setPosition(outtakeClaw.getPosition() + clawInterval);
+            }
+            if (gamepad2.dpad_down) {
+                outtakeClaw.setPosition(outtakeClaw.getPosition() - clawInterval);
+            }
+            if (gamepad2.left_bumper) {
+                outtakeElbow.setPosition(outtakeElbow.getPosition() - 0.005);
+            }
+            if (gamepad2.right_bumper) {
+                outtakeElbow.setPosition(outtakeElbow.getPosition() + 0.005);
+            }
 
+            if(gamepad2.x) {
+                shoulderR.setPosition(shoulderR.getPosition() - shoulderInterval);
+                shoulderL.setPosition(shoulderL.getPosition() + shoulderInterval);
+            }
+            if(gamepad2.b) {
+                shoulderR.setPosition(shoulderR.getPosition() + shoulderInterval);
+                shoulderL.setPosition(shoulderL.getPosition() - shoulderInterval);
+            }
 
             //TRANSFER SEQUENCE BELOW
 
@@ -142,7 +169,7 @@ public class AlexBond2 extends LinearOpMode {
                     //point elbow up
                     case 1:
                         intakeClaw.setPosition(0.67);
-                        if (transferElapsedTime >= 10000){
+                        if (transferElapsedTime >= 5000){
                             transferSequenceStep++;
                             transferSequenceStartTime = System.currentTimeMillis();
                         }
