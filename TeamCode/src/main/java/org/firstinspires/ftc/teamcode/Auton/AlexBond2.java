@@ -136,8 +136,8 @@ if (gamepad1.y) {
             //point elbow down when over sample
             case 0:
                 intakeElbow.setPosition(elbowDown);
-                intakeClaw.setPosition(0.35);
-                if (transferElapsedTime >= 7000) {
+              //  intakeClaw.setPosition(0.35);
+                if (transferElapsedTime >= 4000) {
                     transferSequenceStep++;
                     transferSequenceStartTime = System.currentTimeMillis();
                 }
@@ -146,7 +146,7 @@ if (gamepad1.y) {
             //close claw
             case 1:
                 intakeClaw.setPosition(clawClose);
-                if (transferElapsedTime >= 3000) {
+                if (transferElapsedTime >= 1000) {
                     transferSequenceStep++;
                     transferSequenceStartTime = System.currentTimeMillis();
                 }
