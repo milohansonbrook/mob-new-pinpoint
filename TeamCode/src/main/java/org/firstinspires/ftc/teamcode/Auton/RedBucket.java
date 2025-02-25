@@ -1,35 +1,25 @@
 package org.firstinspires.ftc.teamcode.Auton;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.AutonPoses.RedClipPoses; //to use
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.BezierCurve;
 import com.pedropathing.pathgen.BezierLine;
-import com.pedropathing.pathgen.Path;
 import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
 import com.pedropathing.util.Constants;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
-
-@Autonomous(name = "bucket the great", group = "Autonomous")
 @Config
+@Autonomous(name = "Bucket the great")
 public class RedBucket extends OpMode {
-
-    //Hardware
     Servo turnSlurp;
     Servo claw;
     Servo wrist;
@@ -46,7 +36,7 @@ public class RedBucket extends OpMode {
     public static int bucketClawWait = 400;
     public static int bucketRetractWait = 400;
     public static int bucketDownWait = 400;
-    public static int clawCloseWait = 700;
+    public static int clawCloseWait = 1400;
     public static int clawCloseWaitLast = 1800;
 
     public static double slurpLowerBound = 0.21;
@@ -58,18 +48,18 @@ public class RedBucket extends OpMode {
     public static double lShoulderUp = 0;
     public static double rShoulderUp = 1;
     public static double lShoulderSnag = 0.8;
-    public static double rShoulderSnag = 1-lShoulderSnag;
+    public static double rShoulderSnag = 1 - lShoulderSnag;
     public static double wristUp = 1;
     public static double wristStraight = 0.5;
     public static double extendBarL = 0;
     public static double extendBarR = 1;
     public static double slurpDefault = 0.15;
-    public static double slurpDown = 0.025;
+    public static double slurpDown = 0.027;
     public static double slurpUp = 0.5;
     public static double retractBarL = 1;
     public static double retractBarR = 0;
 
-    public static double sample3x = 20.4;
+    public static double sample3x = 18.4;
     public static double sample3y = 6.7;
     public static double sample3heading = 56.7;
 
@@ -81,13 +71,14 @@ public class RedBucket extends OpMode {
     public String bucketState = "init";
     public String pathState = "init";
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
-    private final Pose sample1 = new Pose(8.48, 10.76, Math.toRadians(0));
-    private final Pose sample2 = new Pose(8.48, 19, Math.toRadians(0));
+    private final Pose sample1 = new Pose(9.98, 10.76, Math.toRadians(0));
+    private final Pose sample2 = new Pose(9.98, 19, Math.toRadians(0)); //ywas18.5
     private final Pose sample3 = new Pose(sample3x, sample3y, Math.toRadians(sample3heading));
     private final Pose bucketPose = new Pose(5.3, 18, Math.toRadians(315));
 
     private Follower follower;
     private PathChain bucketDrop, sample1Snag, sample2Snag, sample3Snag;
+    long timePassed;
     Timer opmodeTimer;
     Timer pathTimer;
     Timer bucketTimer;
@@ -166,8 +157,10 @@ public class RedBucket extends OpMode {
         telemetry.update();
     }
 
-    /** This method is called once at the start of the OpMode.
-     * It runs all the setup actions, including building paths and starting the path system **/
+    /**
+     * This method is called once at the start of the OpMode.
+     * It runs all the setup actions, including building paths and starting the path system
+     **/
     @Override
     public void start() {
         opmodeTimer.resetTimer();
@@ -195,31 +188,46 @@ public class RedBucket extends OpMode {
 //        park = new Path(new BezierCurve(new Point(scorePose), new Point(parkControlPose), new Point(parkPose)));
 //        park.setLinearHeadingInterpolation(scorePose.getHeading(), parkPose.getHeading());
     }
-    public void setBucketState(String bState){
+
+    public void setBucketState(String bState) {
         bucketState = bState;
         bucketTimer.resetTimer();
     }
 
-    public void setPathState (String pState){
+    public void setPathState(String pState) {
         pathState = pState;
         pathTimer.resetTimer();
     }
 
-    public void extendSlurp(){
+    public void extendSlurp() {
         twoBarL.setPosition(extendBarL);
         twoBarR.setPosition(extendBarR);
         turnSlurp.setPosition(slurpDown);
         slurp.setPower(-1);
     }
 
-    public void retractSlurp(){
+    public void retractSlurp() {
         twoBarL.setPosition(retractBarL);
         twoBarR.setPosition(retractBarR);
         turnSlurp.setPosition(slurpUp);
     }
 
-    public void bucketDrop(Pose givenPose){
-        switch (bucketState){
+    public void jiggle() {
+        timePassed = pathTimer.getElapsedTime();
+        if (timePassed > 1300 && timePassed <= 1350) {
+            turnSlurp.setPosition(slurpDown);
+        } else if (timePassed > 1350 && timePassed <= 1400) {
+            turnSlurp.setPosition(slurpUp);
+        } else if (timePassed > 1400 && timePassed <= 1450){
+            turnSlurp.setPosition(slurpDown);
+        } else if (timePassed > 1450 && timePassed <= 1500){
+            turnSlurp.setPosition(slurpUp);
+        }
+    }
+
+
+    public void bucketDrop(Pose givenPose) {
+        switch (bucketState) {
             case "Move to bucket: init": // Move from start to scoring position
                 bucketDrop = follower.pathBuilder()
                         .addPath(new BezierLine(new Point(givenPose), new Point(bucketPose)))
@@ -230,6 +238,7 @@ public class RedBucket extends OpMode {
                 grabMotorR.setTargetPosition(bucketSlidePos);
                 lShoulder.setPosition(lShoulderUp);
                 rShoulder.setPosition(rShoulderUp);
+                slurp.setPower(1);
                 setBucketState("adjust wrist");
                 break;
 
@@ -248,14 +257,14 @@ public class RedBucket extends OpMode {
                 break;
 
             case "retract":
-                if (bucketTimer.getElapsedTime() > bucketRetractWait){
+                if (bucketTimer.getElapsedTime() > bucketRetractWait) {
                     wrist.setPosition(wristUp);
                     setBucketState("down");
                 }
                 break;
 
             case "down":
-                if (bucketTimer.getElapsedTime() > bucketDownWait){
+                if (bucketTimer.getElapsedTime() > bucketDownWait) {
                     grabMotorL.setTargetPosition(0);
                     grabMotorR.setTargetPosition(0);
                     lShoulder.setPosition(0.5);
@@ -265,6 +274,7 @@ public class RedBucket extends OpMode {
                 break;
         }
     }
+
     public void autonomousPathUpdate() {
         switch (pathState) {
             case "drop at bucket 1":
@@ -294,15 +304,15 @@ public class RedBucket extends OpMode {
             case "retract1":
                 if (pathTimer.getElapsedTime() > 1250) {
                     retractSlurp();
+                    jiggle();
                     setPathState("grab");
                 }
                 break;
 
             case "grab":
                 if (pathTimer.getElapsedTime() > clawCloseWait) {
-                    slurp.setPower(0);
                     claw.setPosition(clawClose);
-                    turnSlurp.setPosition(0.5);
+                    turnSlurp.setPosition(0.4);
                     setPathState("wrist switch");
                 }
                 break;
@@ -316,7 +326,7 @@ public class RedBucket extends OpMode {
 
             case "drop at bucket 2":
                 bucketDrop(sample1);
-                if (bucketFinished){
+                if (bucketFinished) {
                     bucketFinished = false;
                     setPathState("second sample");
                     setBucketState("Move to bucket: init");
@@ -341,15 +351,15 @@ public class RedBucket extends OpMode {
             case "retract2":
                 if (pathTimer.getElapsedTime() > 1250) {
                     retractSlurp();
+                    jiggle();
                     setPathState("grab 2");
                 }
                 break;
 
             case "grab 2":
                 if (pathTimer.getElapsedTime() > clawCloseWait) {
-                    slurp.setPower(0);
                     claw.setPosition(clawClose);
-                    turnSlurp.setPosition(0.5);
+                    turnSlurp.setPosition(0.4);
                     setPathState("wrist switch 2");
                 }
                 break;
@@ -363,15 +373,12 @@ public class RedBucket extends OpMode {
 
             case "drop at bucket 3":
                 bucketDrop(sample2);
-                if (bucketFinished){
+                if (bucketFinished) {
                     bucketFinished = false;
                     setPathState("third sample");
                     setBucketState("Move to bucket: init");
                 }
                 break;
-
-
-
 
 
             case "third sample":
@@ -392,6 +399,7 @@ public class RedBucket extends OpMode {
             case "retract3":
                 if (pathTimer.getElapsedTime() > 1250) {
                     retractSlurp();
+                    jiggle();
                     setPathState("grab 3");
                 }
                 break;
@@ -399,7 +407,7 @@ public class RedBucket extends OpMode {
             case "grab 3":
                 if (pathTimer.getElapsedTime() > clawCloseWaitLast) {
                     claw.setPosition(clawClose);
-                    turnSlurp.setPosition(0.5);
+                    turnSlurp.setPosition(0.4);
                     setPathState("wrist switch 3");
                 }
                 break;
@@ -413,7 +421,7 @@ public class RedBucket extends OpMode {
 
             case "drop at bucket 4":
                 bucketDrop(sample3);
-                if (bucketFinished){
+                if (bucketFinished) {
                     bucketFinished = false;
                     setPathState("park");
                     slurp.setPower(0);
@@ -421,6 +429,4 @@ public class RedBucket extends OpMode {
                 break;
         }
     }
-
 }
-
