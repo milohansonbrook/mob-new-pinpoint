@@ -62,16 +62,30 @@ public class AlexBond2 extends LinearOpMode {
         intakeBarR.scaleRange(0.35, 0.65);
         intakeBarR.setPosition(0);
 
-        intakeWrist = hardwareMap.get(Servo.class, "intakeWrist");
-        intakeWrist.setPosition(0.5);
         intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
         intakeClaw.setPosition(0.5);
+        intakeWrist = hardwareMap.get(Servo.class, "intakeWrist");
+        intakeWrist.setPosition(0.5);
         intakeElbow = hardwareMap.get(Servo.class, "intakeElbow");
         intakeElbow.setPosition(0.5);
+
+        outtakeClaw = hardwareMap.get(Servo.class, "outtakeClaw");
+        outtakeClaw.setPosition(0.5);
+        outtakeWrist = hardwareMap.get(Servo.class, "outtakeWrist");
+        outtakeWrist.setPosition(0.5);
+        outtakeElbow = hardwareMap.get(Servo.class, "outtakeElbow");
+        outtakeElbow.setPosition(0.5);
+        shoulderL = hardwareMap.get(Servo.class, "shoulderL");
+        shoulderL.setPosition(0.5);
+        shoulderR = hardwareMap.get(Servo.class, "shoulderR");
+        shoulderR.setPosition(0.5);
 
 
         //pre init code above________________________________________________________________________________________________________________________________
         waitForStart();
+
+//TWO BAR ADJUSTMENT________________________________________________________________________
+
         while (opModeIsActive()) {
             if (gamepad1.right_trigger > 0.1) {
                 intakeBarL.setPosition(intakeBarL.getPosition() + barInterval * gamepad1.right_trigger);
@@ -81,6 +95,7 @@ public class AlexBond2 extends LinearOpMode {
                 intakeBarR.setPosition(intakeBarR.getPosition() + barInterval * gamepad1.left_trigger);
             }
 
+//INTAKE ADJUSTMENT________________________________________________________________________
             if (gamepad1.dpad_left) {
                 intakeWrist.setPosition(intakeWrist.getPosition() + wristInterval);
             }
@@ -93,7 +108,6 @@ public class AlexBond2 extends LinearOpMode {
             if (gamepad1.dpad_down) {
                 intakeClaw.setPosition(intakeClaw.getPosition() - clawInterval);
             }
-//
             else if (gamepad1.x) {
                 // down facing elbow position
                 intakeElbow.setPosition(elbowDown);
@@ -105,8 +119,8 @@ public class AlexBond2 extends LinearOpMode {
              // claw open
                 intakeSequence = 0;
 
-
             }
+//OUTTAKE ADJUSTMENT________________________________________________________________________
 
 
             //TRANSFER SEQUENCE BELOW
