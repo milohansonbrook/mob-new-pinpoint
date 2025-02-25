@@ -13,10 +13,12 @@ public class AlexBond2 extends LinearOpMode {
     public double barInterval = 0.007;
     public double wristInterval = 0.005;
     public double clawInterval = 0.005;
+
     public double elbowDown = 0.75;
     public double elbowHunting = 0.70;
     public double elbowUp = 0.23;
     public double wristHoriz = 0.17;
+    public double clawClose = 0.67;
 
     double transferSequenceStartTime = System.currentTimeMillis();
     int transferSequenceStep = 0;
@@ -110,7 +112,7 @@ public class AlexBond2 extends LinearOpMode {
             }
             else if (gamepad1.x) {
                 // down facing elbow position
-                intakeElbow.setPosition(elbowDown);
+                intakeElbow.setPosition(elbowHunting);
             } else if (gamepad1.b) {
                 // up facing elbow position
                 intakeElbow.setPosition(elbowUp);
@@ -125,75 +127,41 @@ public class AlexBond2 extends LinearOpMode {
 
             //TRANSFER SEQUENCE BELOW
 
+if (gamepad1.y) {
+    if (transferSequenceActive && !transferSequenceCompleted) {
+        long transferElapsedTime = (long) (System.currentTimeMillis() - transferSequenceStartTime);
 
-            if (transferSequenceActive && !transferSequenceCompleted) {
+        switch (transferSequenceStep) {
 
-                long transferElapsedTime = (long) (System.currentTimeMillis() - transferSequenceStartTime);
-                switch (transferSequenceStep) {
-
-                    //point elbow down
-                    case 0:
-                    intakeElbow.setPosition(elbowHunting);
-                        if (transferElapsedTime >= 10000){
-                            transferSequenceStep++;
-                            transferSequenceStartTime = System.currentTimeMillis();
-                        }
-                        break;
-                    //close claw
-                    case 1:
-                        intakeClaw.setPosition(0.67);
-                        if (transferElapsedTime >= 10000){
-                            transferSequenceStep++;
-                            transferSequenceStartTime = System.currentTimeMillis();
-                        }
-                        break;
-
-                    case 2:
-
-                        intakeWrist.setPosition(wristHoriz);
-                        intakeElbow.setPosition(elbowUp);
-                        break;
-
-                    //case 2:
-
-
-
-
+            //point elbow down when over sample
+            case 0:
+                intakeElbow.setPosition(elbowDown);
+                intakeClaw.setPosition(0.35);
+                if (transferElapsedTime >= 7000) {
+                    transferSequenceStep++;
+                    transferSequenceStartTime = System.currentTimeMillis();
                 }
-/*
-                if (specimenSequenceActive && !specimenSequenceComplete) {
-                    long specimenElapsedTime = System.currentTimeMillis() - specimenSequenceStartTime;
-                    switch (specimenSequenceStep) {
-                        case 0:
-                            //close claw
-                            clawState = false;
-                            //wait 0.3 seconds
-                            if (specimenElapsedTime >= 300){
-                                specimenSequenceStep++;
-                                specimenSequenceStartTime = System.currentTimeMillis();
-                            }
-                            break;
+                break;
 
- */
-                /*
-                elbow down
-                close claw
-                twist wrist and move elbow back to up facing position
-                */
-           /*
-                switch (intakeSequence) {
-                    case 0:
-                        intakeClaw.setPosition(0);
-
-
+            //close claw
+            case 1:
+                intakeClaw.setPosition(clawClose);
+                if (transferElapsedTime >= 3000) {
+                    transferSequenceStep++;
+                    transferSequenceStartTime = System.currentTimeMillis();
                 }
-            }
+                break;
 
-                }
+            //bring piece into bot for transfer
+            case 2:
+                intakeWrist.setPosition(wristHoriz);
+                intakeElbow.setPosition(elbowUp);
+                break;
 
-            */
-            }
+        }
 
+    }
+}
 
         }
     }
