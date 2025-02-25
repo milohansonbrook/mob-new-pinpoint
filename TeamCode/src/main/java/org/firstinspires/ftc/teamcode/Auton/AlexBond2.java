@@ -125,7 +125,7 @@ public class AlexBond2 extends LinearOpMode {
                             transferSequenceStartTime = System.currentTimeMillis();
                         }
                         break;
-                    //point elbow up
+                    //close claw
                     case 1:
                         intakeClaw.setPosition(0.67);
                         if (transferElapsedTime >= 10000){
