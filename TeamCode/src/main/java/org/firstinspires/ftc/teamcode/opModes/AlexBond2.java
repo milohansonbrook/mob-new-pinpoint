@@ -1,10 +1,16 @@
 package org.firstinspires.ftc.teamcode.opModes;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.localization.Pose;
+import com.pedropathing.util.Constants;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import pedroPathing.constants.FConstants;
+import pedroPathing.constants.LConstants;
 
 
 @TeleOp
@@ -14,7 +20,7 @@ public class AlexBond2 extends LinearOpMode {
     public double wristInterval = 0.005;
     public double clawInterval = 0.005;
     public double shoulderInterval = 0.005;
-    public double elbowDown = 0.75;
+    public double elbowDown = 0.78;
     public double elbowHunting = 0.70;
     public double elbowUp = 0.23;
     public double wristHoriz = 0.17;
@@ -54,14 +60,17 @@ public class AlexBond2 extends LinearOpMode {
     boolean transferSequenceCompleted = false;
     int intakeSequence = 0;
 
+    private Follower follower;
+    private final Pose startPose = new Pose(0,0,0);
+
     @Override
     public void runOpMode() throws InterruptedException {
 
         intakeBarL = hardwareMap.get(Servo.class, "intakeBarL");
-        intakeBarL.scaleRange(0.35, 0.67);
+        intakeBarL.scaleRange(0.35, 0.65);
         intakeBarL.setPosition(1);
         intakeBarR = hardwareMap.get(Servo.class, "intakeBarR");
-        intakeBarR.scaleRange(0.33, 0.65);
+        intakeBarR.scaleRange(0.35, 0.65);
         intakeBarR.setPosition(0);
 
         intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
@@ -78,17 +87,26 @@ public class AlexBond2 extends LinearOpMode {
         outtakeElbow = hardwareMap.get(Servo.class, "outtakeElbow");
         outtakeElbow.setPosition(0.5);
         shoulderL = hardwareMap.get(Servo.class, "shoulderL");
-        shoulderL.setPosition(0.5);
+        shoulderL.setPosition(0.7);
         shoulderR = hardwareMap.get(Servo.class, "shoulderR");
-        shoulderR.setPosition(0.5);
+        shoulderR.setPosition(0.3);
+
+        Constants.setConstants(FConstants.class, LConstants.class);
+        follower = new Follower(hardwareMap);
+        follower.setStartingPose(startPose);
 
 
         //pre init code above________________________________________________________________________________________________________________________________
         waitForStart();
+        follower.startTeleopDrive();
 
 //TWO BAR ADJUSTMENT________________________________________________________________________
 
         while (opModeIsActive()) {
+
+            follower.setTeleOpMovementVectors(-gamepad2.left_stick_y, -gamepad2.left_stick_x, -gamepad2.right_stick_x, true);
+            follower.update();
+
             if (gamepad1.left_trigger > 0.1) {
                 intakeBarL.setPosition(intakeBarL.getPosition() + barInterval * gamepad1.left_trigger);
                 intakeBarR.setPosition(intakeBarR.getPosition() - barInterval * gamepad1.left_trigger);
@@ -150,10 +168,16 @@ public class AlexBond2 extends LinearOpMode {
                 shoulderL.setPosition(shoulderL.getPosition() - shoulderInterval);
             }
 
-            //TRANSFER SEQUENCE BELOW
 
-            if (gamepad1.y) {
-                if (transferSequenceActive && !transferSequenceCompleted) {
+
+
+            //TRANSFER SEQUENCE BELOW
+/*
+         //   if (gamepad1.y) {
+         */
+              //  if (transferSequenceActive && !transferSequenceCompleted) {
+
+                /*
                     long transferElapsedTime = (long) (System.currentTimeMillis() - transferSequenceStartTime);
 
                     switch (transferSequenceStep) {
@@ -171,7 +195,7 @@ public class AlexBond2 extends LinearOpMode {
                         //close claw
                         case 1:
                             intakeClaw.setPosition(clawClose);
-                            if (transferElapsedTime >= 1000) {
+                            if (transferElapsedTime >= 1250) {
                                 transferSequenceStep++;
                                 transferSequenceStartTime = System.currentTimeMillis();
                             }
@@ -181,51 +205,40 @@ public class AlexBond2 extends LinearOpMode {
                         case 2:
                             intakeWrist.setPosition(wristHoriz);
                             intakeElbow.setPosition(elbowUp);
+                            if (transferElapsedTime >= 1000) {
+                                transferSequenceStep++;
+                                transferSequenceStartTime = System.currentTimeMillis();
+                            }
                             break;
+
+                        case 3:
+                            shoulderL.setPosition(0.4);
+                            shoulderR.setPosition(0.6);
+                            outtakeClaw.setPosition(0.4); //open claw
+                            if (transferElapsedTime >= 1000) {
+                                transferSequenceStep++;
+                                transferSequenceStartTime = System.currentTimeMillis();
+                            }
+                            break;
+
+                        case 4:
 
                         //case 2:
 
 
                     }
-/*
-                if (specimenSequenceActive && !specimenSequenceComplete) {
-                    long specimenElapsedTime = System.currentTimeMillis() - specimenSequenceStartTime;
-                    switch (specimenSequenceStep) {
-                        case 0:
-                            //close claw
-                            clawState = false;
-                            //wait 0.3 seconds
-                            if (specimenElapsedTime >= 300){
-                                specimenSequenceStep++;
-                                specimenSequenceStartTime = System.currentTimeMillis();
-                            }
-                            break;
-
- */
-                /*
-                elbow down
-                close claw
-                twist wrist and move elbow back to up facing position
-                */
-           /*
-                switch (intakeSequence) {
-                    case 0:
-                        intakeClaw.setPosition(0);
-
 
                 }
-            }
-
                 }
 
-            */
+*/
                 }
 
 
-            }
+           // }
         }
     }
-}
+
 
 
 

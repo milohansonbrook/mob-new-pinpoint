@@ -8,6 +8,7 @@ import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
 import com.pedropathing.util.Constants;
 import com.pedropathing.util.Timer;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -33,6 +34,7 @@ public class RedClip extends OpMode {
     CRServo slurp;
     DcMotor grabMotorL;
     DcMotor grabMotorR;
+    Limelight3A limelight;
 
     //Waits
     public static int clawWait = 1000;
@@ -76,13 +78,15 @@ public class RedClip extends OpMode {
     private final Pose grabPos = new Pose(1.8, -37.5, Math.toRadians(0));
 
 
+
     private Follower follower;
-    private PathChain bar1, pushPoint1, pushPoint2, pushPoint3, pushPoint4, pushPoint5, pushPoint6, pushPoint7, pushPoint8, pushPoint9, pushPoint10;
+    private PathChain bar1, pushPoint1, pushPoint2, pushPoint3, pushPoint4, pushPoint5, pushPoint6, pushPoint7, pushPoint8, pushPoint9, pushPoint10, grab1, grab2, grab3, bar2, bar3, bar4;
     Timer opmodeTimer;
     Timer pathTimer;
 
     @Override
     public void init() {
+
 
         turnSlurp = hardwareMap.get(Servo.class, "turnSlurp");
         turnSlurp.scaleRange(slurpLowerBound, slurpUpperBound);
@@ -206,6 +210,31 @@ public class RedClip extends OpMode {
                 .addPath(new BezierLine(new Point(prePush3), new Point(observe3)))
                 .setLinearHeadingInterpolation(prePush3.getHeading(), observe3.getHeading())
                 .build();
+        grab1 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(observe3), new Point(grabPos)))
+                .setLinearHeadingInterpolation(observe3.getHeading(), grabPos.getHeading())
+                .build();
+        bar2 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(grabPos), new Point(clip2)))
+                .setLinearHeadingInterpolation(grabPos.getHeading(), clip2.getHeading())
+                .build();
+        grab2 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(clip2), new Point(grabPos)))
+                .setLinearHeadingInterpolation(clip2.getHeading(), grabPos.getHeading())
+                .build();
+        bar3 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(grabPos), new Point(clip3)))
+                .setLinearHeadingInterpolation(grabPos.getHeading(), clip3.getHeading())
+                .build();
+        grab3 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(clip3), new Point(grabPos)))
+                .setLinearHeadingInterpolation(clip3.getHeading(), grabPos.getHeading())
+                .build();
+        bar4 = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(grabPos), new Point(clip4)))
+                .setLinearHeadingInterpolation(grabPos.getHeading(), clip4.getHeading())
+                .build();
+
     }
     public void setBarPose(double pose){
         lShoulder.setPosition(pose);
@@ -245,47 +274,118 @@ public class RedClip extends OpMode {
                         claw.setPosition(clawOpen);
                         wrist.setPosition(wristUp);
                         setBarPose(barDown);
-                        setPathState("move set");
+                        setPathState("move set1");
                     }
                     break;
 
-                case "move set":
+                case "move set1":
                     setVertSlide(0);
                     follower.followPath(pushPoint1, true);
                     follower.followPath(pushPoint2, true);
-                    setPathState("yo");
+                    setPathState("push back1");
                     break;
 
-                case "yo":
+                case "push back1":
                     if (!follower.isBusy()) {
                         follower.followPath(pushPoint3, true);
                         follower.followPath(pushPoint4, true);
-                        setPathState("yoyo");
+                        setPathState("move set2");
                     }
                     break;
 
-                case "yoyo":
+                case "move set2":
                     if (!follower.isBusy()) {
                         follower.followPath(pushPoint5, true);
                         follower.followPath(pushPoint6, true);
-                        setPathState("yoyoyo");
+                        setPathState("Back + set3");
                     }
                     break;
 
-                case "yoyoyo":
+                case "Back + set3":
                     if (!follower.isBusy()) {
                         follower.followPath(pushPoint7, true);
                         follower.followPath(pushPoint8, true);
-                        setPathState("yoyoyoyo");
+                        setPathState("Back4");
                     }
                     break;
 
-                case "yoyoyoyo":
+                case "Back4":
                     if (!follower.isBusy()) {
                         follower.followPath(pushPoint9, true);
                         follower.followPath(pushPoint10, true);
-                        setPathState("yoyoyoyoyo");
+                        setPathState("Grab1");
                     }
+                    break;
+                case "Grab1":
+                    if(!follower.isBusy()){
+                        follower.followPath(grab1, true);
+                        setPathState("arm grab");
+                    }
+                    break;
+                case "arm grab":
+                    //use limelight to adjust grabber
+                    //arm movement to grab off wall
+                    setPathState("Clip2");
+                    break;
+                case "Clip2":
+                    if (!follower.isBusy())
+                    {
+                        //prepare arm movements
+                        follower.followPath(bar2, true);
+                        setPathState("arm clip");
+                    }
+                    break;
+                case "arm clip":
+                    //clip movement
+                    setPathState("Grab2");
+                    break;
+                case "Grab2":
+                    if (!follower.isBusy())
+                    {
+                        follower.followPath(grab2, true);
+                        setPathState("arm grab2");
+                    }
+                    break;
+                case "arm grab2":
+                    //use limelight to adjust grabber
+                    //arm movement to grab off wall
+                    setPathState("Clip3");
+                    break;
+                case "Clip3":
+                    if (!follower.isBusy())
+                    {
+                        //prepare arm movements
+                        follower.followPath(bar3, true);
+                        setPathState("arm clip2");
+                    }
+                    break;
+                case "arm clip2":
+                    //clip movement
+                    setPathState("Grab3");
+                    break;
+                case "Grab3":
+                    if (!follower.isBusy())
+                    {
+                        follower.followPath(grab3, true);
+                        setPathState("arm grab3");
+                    }
+                    break;
+                case "arm grab3":
+                    //use limelight to adjust grabber
+                    //arm movement to grab off wall
+                    setPathState("Clip4");
+                    break;
+                case "Clip4":
+                    if (!follower.isBusy())
+                    {
+                        //prepare arm movements
+                        follower.followPath(bar4, true);
+                        setPathState("arm clip3");
+                    }
+                    break;
+                case "arm clip3":
+                    //clip movement
+                    setPathState("end");
                     break;
             }
         }
