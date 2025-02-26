@@ -71,9 +71,9 @@ public class AlexBond2 extends LinearOpMode {
         outtakeElbow = hardwareMap.get(Servo.class, "outtakeElbow");
         outtakeElbow.setPosition(0.5);
         shoulderL = hardwareMap.get(Servo.class, "shoulderL");
-        shoulderL.setPosition(0.1);
+        shoulderL.setPosition(0.05);
         shoulderR = hardwareMap.get(Servo.class, "shoulderR");
-        shoulderR.setPosition(0.9);
+        shoulderR.setPosition(0.95);
 
 
 
@@ -154,9 +154,20 @@ public class AlexBond2 extends LinearOpMode {
                 shoulderL.setPosition(shoulderL.getPosition() - shoulderInterval);
             }
 
+            //BUCKET SEQUENCE
+            if (gamepad1.a)
+            {
+                outtakeClaw.setPosition(0);
+                intakeBarL.setPosition(0);
+                intakeBarR.setPosition(1);
+
+            }
+
+
+
             //TRANSFER SEQUENCE BELOW
 
-            if (gamepad1.y) {
+            /*if (gamepad1.y) {
                 if (transferSequenceActive && !transferSequenceCompleted) {
                     long transferElapsedTime = (long) (System.currentTimeMillis() - transferSequenceStartTime);
 
@@ -228,8 +239,8 @@ public class AlexBond2 extends LinearOpMode {
 
             }
         }
-    }
-}
+
+
 
 
 
