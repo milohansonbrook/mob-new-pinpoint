@@ -24,9 +24,10 @@ import pedroPathing.constants.LConstants;
 @Config
 public class RedClip extends OpMode {
 
-    Servo turnSlurp;
-    Servo claw;
-    Servo wrist;
+    Servo claw;//open closed
+    Servo rotClaw; //up-down
+
+    Servo wrist;//side side
     Servo rShoulder;
     Servo lShoulder;
     Servo twoBarR;
@@ -40,8 +41,7 @@ public class RedClip extends OpMode {
     public static int clawWait = 1000;
 
     //technical poses
-    public static double slurpLowerBound = 0.19;
-    public static double slurpUpperBound = 0.65;
+
     public static double armMidPosL = 0.7;
     public static double armMidPosR = (1 - armMidPosL);
     public static double barDown = 0.5;
@@ -88,9 +88,7 @@ public class RedClip extends OpMode {
     public void init() {
 
 
-        turnSlurp = hardwareMap.get(Servo.class, "turnSlurp");
-        turnSlurp.scaleRange(slurpLowerBound, slurpUpperBound);
-        turnSlurp.setPosition(1);
+
 
         twoBarL = hardwareMap.get(Servo.class, "twoBarL");
         twoBarL.scaleRange(0.425, 0.72);
@@ -129,7 +127,7 @@ public class RedClip extends OpMode {
         claw.scaleRange(0.525, 0.64);
         claw.setPosition(clawClose);
 
-        slurp = hardwareMap.get(CRServo.class, "slurp");
+
 
         pathTimer = new Timer();
         opmodeTimer = new Timer();
@@ -247,8 +245,8 @@ public class RedClip extends OpMode {
 
         public void autonomousPathUpdate() {
             switch (pathState) {
-                case "set slurp":
-                    turnSlurp.setPosition(startSlurp);
+                case "set wrist":
+
                     setPathState("move to bar");
                     break;
 
