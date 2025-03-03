@@ -357,8 +357,12 @@ public class RedClip extends OpMode {
                 case "arm grab":
                     //arm movement to grab off wall
 
-                    rShoulder.setPosition(backForWall);
-                    lShoulder.setPosition(1-backForWall);
+                    grabMotorL.setTargetPosition(0);
+                    grabMotorR.setTargetPosition(0);
+                    rShoulder.setPosition(0.9);
+                    lShoulder.setPosition(0.1);
+                    OutWrist.setPosition(0);
+                    OutElbow.setPosition(0);
                     OutClaw.setPosition(clawClose);
                     setPathState("Clip2");
                     break;
@@ -380,56 +384,117 @@ public class RedClip extends OpMode {
                 case "arm clip":
                     //clip movement
                     setVertSlide(slideClipPose2);
-                    setPathState("Grab2");
+                    setPathState("open claw2");
+                    break;
+                case "open claw2":
+                    if (pathTimer.getElapsedTime() > clawWait) {
+                        OutWrist.setPosition(wristUp);
+                        OutClaw.setPosition(clawOpen);
+                        twoBarL.setPosition(0.75);
+                        twoBarR.setPosition(0.25);
+                        setBarPose(barDown);
+                        setPathState("Grab2");
+                    }
                     break;
                 case "Grab2":
                     if (!follower.isBusy())
                     {
+                        OutClaw.setPosition(clawOpen);
                         follower.followPath(grab2, true);
                         setPathState("arm grab2");
                     }
                     break;
                 case "arm grab2":
-                    //use limelight to adjust grabber
                     //arm movement to grab off wall
+                    grabMotorL.setTargetPosition(0);
+                    grabMotorR.setTargetPosition(0);
+                    rShoulder.setPosition(0.9);
+                    lShoulder.setPosition(0.1);
+                    OutWrist.setPosition(0);
+                    OutElbow.setPosition(0);
+                    OutClaw.setPosition(clawClose);
                     setPathState("Clip3");
                     break;
                 case "Clip3":
                     if (!follower.isBusy())
                     {
                         //prepare arm movements
+                        twoBarL.setPosition(0.75);
+                        twoBarR.setPosition(0.25);
+                        setBarPose(1);
+                        OutWrist.setPosition(wristStraight);
+                        setVertSlide(slideClipPose1);
+                        twoBarL.setPosition(1);
+                        twoBarR.setPosition(0);
                         follower.followPath(bar3, true);
                         setPathState("arm clip2");
                     }
                     break;
                 case "arm clip2":
                     //clip movement
-                    setPathState("Grab3");
+                    setVertSlide(slideClipPose2);
+                    setPathState("open claw3");
+                    break;
+                case "open claw3":
+                    if (pathTimer.getElapsedTime() > clawWait) {
+                        OutWrist.setPosition(wristUp);
+                        OutClaw.setPosition(clawOpen);
+                        twoBarL.setPosition(0.75);
+                        twoBarR.setPosition(0.25);
+                        setBarPose(barDown);
+                        setPathState("Grab3");
+                    }
                     break;
                 case "Grab3":
                     if (!follower.isBusy())
                     {
+                        OutClaw.setPosition(clawOpen);
                         follower.followPath(grab3, true);
                         setPathState("arm grab3");
                     }
                     break;
                 case "arm grab3":
-                    //use limelight to adjust grabber
                     //arm movement to grab off wall
+                    grabMotorL.setTargetPosition(0);
+                    grabMotorR.setTargetPosition(0);
+                    rShoulder.setPosition(0.9);
+                    lShoulder.setPosition(0.1);
+                    OutWrist.setPosition(0);
+                    OutElbow.setPosition(0);
+                    OutClaw.setPosition(clawClose);
                     setPathState("Clip4");
                     break;
                 case "Clip4":
                     if (!follower.isBusy())
                     {
                         //prepare arm movements
+                        twoBarL.setPosition(0.75);
+                        twoBarR.setPosition(0.25);
+                        setBarPose(1);
+                        OutWrist.setPosition(wristStraight);
+                        setVertSlide(slideClipPose1);
+                        twoBarL.setPosition(1);
+                        twoBarR.setPosition(0);
                         follower.followPath(bar4, true);
                         setPathState("arm clip3");
                     }
                     break;
                 case "arm clip3":
                     //clip movement
-                    setPathState("end");
+                    setVertSlide(slideClipPose2);
+                    setPathState("open claw4");
                     break;
+                case "open claw4":
+                    if (pathTimer.getElapsedTime() > clawWait) {
+                        OutWrist.setPosition(wristUp);
+                        OutClaw.setPosition(clawOpen);
+                        twoBarL.setPosition(0.75);
+                        twoBarR.setPosition(0.25);
+                        setBarPose(barDown);
+                        setPathState("end");
+                    }
+                    break;
+
             }
         }
         public void setPathState (String pState){
