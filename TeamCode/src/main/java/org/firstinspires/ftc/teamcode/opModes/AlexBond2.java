@@ -14,7 +14,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
-
 @TeleOp
 @Config
 public class AlexBond2 extends LinearOpMode {
