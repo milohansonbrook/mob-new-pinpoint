@@ -44,23 +44,24 @@ public class RedClip extends OpMode {
 
     //technical poses
 
-    public static double armMidPosL = 0.7;
-    public static double armMidPosR = (1 - armMidPosL);
+
+    public static double armMidPosR = 0.63;
+    public static double armMidPosL = (1 - armMidPosR);
     public static double barDown = 0.5;
-    public static double wristUp = 1;
+    public static double wristUp = 0.5;
     public static double wristStraight = 0.4;
     public static double backForWall = 0.0;
     public static double OutWristInit = 0.0;
-    public static double InElbowInit = 0.0;
-    public static double OutElbowInit = 0.0;
+    public static double InElbowInit = 0.6;
+    public static double OutElbowInit = 0.5;
     public static int slideWall = 50;
-    public static double OutClawInit = 0.0;
-    public static double InClawInit = 0.0;
+    public static double OutClawInit = 0.5;
+    public static double InClawInit = 0.5;
     public static double clawClose = 1;
     public static double clawOpen = 0;
     public static int slideClipPose1 = 250;
     public static int slideClipPose2 = 650;
-    public static double startSlurp = 0.35;
+
 
     //drive poses
     public static double clipPoseX = 25;
@@ -108,27 +109,27 @@ public class RedClip extends OpMode {
         twoBarR.setPosition(0);
 
         InWrist = hardwareMap.get(Servo.class, "intakeWrist");
-        InWrist.scaleRange(0, 1);
+        InWrist.scaleRange(0.18, 0.82);
         InWrist.setPosition(wristUp);
 
         OutWrist = hardwareMap.get(Servo.class, "outtakeWrist");
-        OutWrist.scaleRange(0,1);
+        OutWrist.scaleRange(0.25, 0.9);
         OutWrist.setPosition(OutWristInit);
 
         InElbow = hardwareMap.get(Servo.class, "intakeElbow");
-        InElbow.scaleRange(0,1);
+        InElbow.scaleRange(0.23, 0.76);
         InElbow.setPosition(InElbowInit);
 
         OutElbow = hardwareMap.get(Servo.class, "outtakeElbow");
-        OutElbow.scaleRange(0,1);
+        OutElbow.scaleRange(0.2, 0.6);
         OutElbow.setPosition(OutElbowInit);
 
         rShoulder = hardwareMap.get(Servo.class, "shoulderR");
-        rShoulder.scaleRange(0, 1);
+        rShoulder.scaleRange(0.05, 0.9);
         rShoulder.setPosition(armMidPosR);
 
         lShoulder = hardwareMap.get(Servo.class, "shoulderL");
-        lShoulder.scaleRange(0, 1);
+        lShoulder.scaleRange(0.1, 0.95);
         lShoulder.setPosition(armMidPosL);
 
         grabMotorL = hardwareMap.get(DcMotor.class, "slideMotorL");
@@ -145,11 +146,11 @@ public class RedClip extends OpMode {
         grabMotorR.setPower(0.5);
 
         InClaw = hardwareMap.get(Servo.class, "intakeClaw");
-        InClaw.scaleRange(0.525, 0.64);
+        InClaw.scaleRange(0.39, 0.65);
         InClaw.setPosition(InClawInit);
 
         OutClaw = hardwareMap.get(Servo.class, "outtakeClaw");
-        OutClaw.scaleRange(0,1);
+        OutClaw.scaleRange(0.4, 0.7);
         OutClaw.setPosition(OutClawInit);
 
 
@@ -279,9 +280,13 @@ public class RedClip extends OpMode {
                     if (pathTimer.getElapsedTime() > 300) {
                         twoBarL.setPosition(0.75);
                         twoBarR.setPosition(0.25);
-                        setBarPose(1);
-                        OutWrist.setPosition(wristStraight);
+                        grabMotorL.setTargetPosition(0);
+                        grabMotorR.setTargetPosition(0);
+                        rShoulder.setPosition(0.9);
+                        lShoulder.setPosition(0.1);
                         setVertSlide(slideClipPose1);
+
+                        OutElbow.setPosition(0);
                         twoBarL.setPosition(1);
                         twoBarR.setPosition(0);
                         follower.followPath(bar1, true);
@@ -298,11 +303,11 @@ public class RedClip extends OpMode {
 
                 case "open claw":
                     if (pathTimer.getElapsedTime() > clawWait){
-                        OutWrist.setPosition(wristUp);
+                        OutWrist.setPosition(0);
                         OutClaw.setPosition(clawOpen);
                         twoBarL.setPosition(0.75);
                         twoBarR.setPosition(0.25);
-                        setBarPose(barDown);
+
                         setPathState("move set1");
                     }
                     break;
@@ -372,7 +377,7 @@ public class RedClip extends OpMode {
                         //prepare arm movements
                         twoBarL.setPosition(0.75);
                         twoBarR.setPosition(0.25);
-                        setBarPose(1);
+
                         OutWrist.setPosition(wristStraight);
                         setVertSlide(slideClipPose1);
                         twoBarL.setPosition(1);
@@ -392,7 +397,7 @@ public class RedClip extends OpMode {
                         OutClaw.setPosition(clawOpen);
                         twoBarL.setPosition(0.75);
                         twoBarR.setPosition(0.25);
-                        setBarPose(barDown);
+
                         setPathState("Grab2");
                     }
                     break;

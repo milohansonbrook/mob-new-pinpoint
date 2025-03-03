@@ -90,53 +90,7 @@ public class BucketTheGreat007 extends OpMode {
 
     @Override
     public void init() {
-        intakeBarL = hardwareMap.get(Servo.class, "intakeBarL");
-        intakeBarL.scaleRange(0.35, 0.67);
-        intakeBarL.setPosition(1);
-        intakeBarR = hardwareMap.get(Servo.class, "intakeBarR");
-        intakeBarR.scaleRange(0.33, 0.65);
-        intakeBarR.setPosition(0);
 
-        outtakeClaw = hardwareMap.get(Servo.class, "outtakeClaw");
-        outtakeClaw.setPosition(0.5);
-        outtakeClaw.scaleRange(0.4, 0.7);
-        outtakeWrist = hardwareMap.get(Servo.class, "outtakeWrist");
-        outtakeWrist.setPosition(0.55);
-        outtakeWrist.scaleRange(0.25, 0.9);
-        outtakeElbow = hardwareMap.get(Servo.class, "outtakeElbow");
-        outtakeElbow.setPosition(0.5);
-        outtakeElbow.scaleRange(0.2, 0.6);
-        shoulderL = hardwareMap.get(Servo.class, "shoulderL");
-        shoulderL.setPosition(0.1);
-        shoulderL.scaleRange(0.1, 0.95);
-        shoulderR = hardwareMap.get(Servo.class, "shoulderR");
-        shoulderR.setPosition(0.9);
-        shoulderR.scaleRange(0.05, 0.9);
-
-        intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
-        intakeClaw.setPosition(0.5);
-        intakeClaw.scaleRange(0.39, 0.65);
-        intakeWrist = hardwareMap.get(Servo.class, "intakeWrist");
-        intakeWrist.setPosition(0.5);
-        intakeWrist.scaleRange(0.18, 0.82);
-        intakeElbow = hardwareMap.get(Servo.class, "intakeElbow");
-        intakeElbow.setPosition(0.6);
-        intakeElbow.scaleRange(0.23, 0.76);
-
-        slideMotorL = hardwareMap.get(DcMotor.class, "slideMotorL");
-        slideMotorL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slideMotorL.setTargetPosition(0);
-        slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slideMotorL.setPower(1);
-
-        slideMotorR = hardwareMap.get(DcMotor.class, "slideMotorR");
-        slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slideMotorR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        slideMotorR.setDirection(DcMotorSimple.Direction.REVERSE);
-        slideMotorR.setTargetPosition(0);
-        slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slideMotorR.setPower(1);
 
         pathTimer = new Timer();
         bucketTimer = new Timer();
