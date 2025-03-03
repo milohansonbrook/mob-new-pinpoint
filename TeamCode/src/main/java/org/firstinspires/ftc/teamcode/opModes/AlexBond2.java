@@ -51,9 +51,10 @@ public class AlexBond2 extends LinearOpMode {
 
     // moves vertical slides up and down
     DcMotor slideMotorR; //3E
-    DcMotor slideMotorL; //3C
+    DcMotor slideMotorL;//3C
     boolean transferActive;
     boolean transferComplete;
+    boolean specMode = false;
     boolean specActive;
     boolean specComplete;
     boolean outtakeClawOpen = true;
@@ -220,7 +221,7 @@ public class AlexBond2 extends LinearOpMode {
                     slideMotorL.setTargetPosition(slideMotorL.getTargetPosition() - 10);
                 }
             }
-            if (gamepad1.x && !transferActive) {
+            if (gamepad1.b && !transferActive) {
                 slideMotorL.setTargetPosition(0);
                 slideMotorR.setTargetPosition(0);
                 intakeClawOpen = false;
@@ -236,20 +237,8 @@ public class AlexBond2 extends LinearOpMode {
                 transferStartTime = System.currentTimeMillis();
             }
 
-            if (gamepad1.b) {
-                slideMotorL.setTargetPosition(0);
-                slideMotorR.setTargetPosition(0);
-                intakeClawOpen = true;
-                outtakeClawOpen = true;
-                shoulderL.setPosition(0.15);
-                shoulderR.setPosition(0.85);
-                intakeElbow.setPosition(elbowUp);
-                transferStep = 0;
-                transferActive = false;
-                transferComplete = true;
-            }
-
-            if (gamepad1.a) {
+            if (gamepad1.x) {
+                specMode = !specMode;
                 slideMotorL.setTargetPosition(0);
                 slideMotorR.setTargetPosition(0);
                 shoulderR.setPosition(0.9);
@@ -258,11 +247,13 @@ public class AlexBond2 extends LinearOpMode {
                 outtakeElbow.setPosition(0);
                 outtakeClawOpen = true;
             }
-            if (gamepad1.y && !specActive) {
-                specStep = 0;
-                specActive = true;
-                specComplete = false;
-                specStartTime = System.currentTimeMillis();
+            if (specMode) {
+                if (gamepad1.a && !specActive) {
+                    specStep = 0;
+                    specActive = true;
+                    specComplete = false;
+                    specStartTime = System.currentTimeMillis();
+                }
             }
 
 //Code Actions!!!________________________________________________________________________
