@@ -23,6 +23,10 @@ import pedroPathing.constants.LConstants;
 @Autonomous(name = "clippy clip", group = "Autonomous")
 @Config
 public class RedClip extends OpMode {
+    public static double pickUpSpecElbow = 0;
+    long specStartTime = 0;
+    int specStep = 0;
+    long specElapsedTime = System.currentTimeMillis() - specStartTime;
 
     Servo InClaw;//outtake open closed
     Servo InElbow; //outtake claw up/down
@@ -38,6 +42,8 @@ public class RedClip extends OpMode {
     DcMotor grabMotorL;
     DcMotor grabMotorR;
     Limelight3A limelight;
+    boolean outtakeClawOpen = true;
+
 
     //Waits
     public static int clawWait = 1000;
@@ -54,7 +60,7 @@ public class RedClip extends OpMode {
     public static double OutWristInit = 0.0;
     public static double InElbowInit = 0.6;
     public static double OutElbowInit = 0.5;
-    public static int slideWall = 50;
+    public static int slideWall = 10;
     public static double OutClawInit = 0.5;
     public static double InClawInit = 0.5;
     public static double clawClose = 1;
@@ -114,15 +120,15 @@ public class RedClip extends OpMode {
 
         OutWrist = hardwareMap.get(Servo.class, "outtakeWrist");
         OutWrist.scaleRange(0.25, 0.9);
-        OutWrist.setPosition(OutWristInit);
+        //OutWrist.setPosition(OutWristInit);
 
         InElbow = hardwareMap.get(Servo.class, "intakeElbow");
-        InElbow.scaleRange(0.23, 0.76);
+
         InElbow.setPosition(InElbowInit);
 
         OutElbow = hardwareMap.get(Servo.class, "outtakeElbow");
         OutElbow.scaleRange(0.2, 0.6);
-        OutElbow.setPosition(OutElbowInit);
+        //OutElbow.setPosition(OutElbowInit);
 
         rShoulder = hardwareMap.get(Servo.class, "shoulderR");
         rShoulder.scaleRange(0.05, 0.9);
@@ -152,6 +158,8 @@ public class RedClip extends OpMode {
         OutClaw = hardwareMap.get(Servo.class, "outtakeClaw");
         OutClaw.scaleRange(0.4, 0.7);
         OutClaw.setPosition(OutClawInit);
+        OutWrist.setPosition(0);
+        OutElbow.setPosition(pickUpSpecElbow);
 
 
 
@@ -272,41 +280,79 @@ public class RedClip extends OpMode {
         public void autonomousPathUpdate() {
             switch (pathState) {
                 case "set wrist":
+                    if (!follower.isBusy()){
+                    follower.followPath(bar1, true);
 
                     setPathState("move to bar");
+                    }
                     break;
 
                 case "move to bar":
-                    if (pathTimer.getElapsedTime() > 300) {
-                        twoBarL.setPosition(0.75);
-                        twoBarR.setPosition(0.25);
-                        grabMotorL.setTargetPosition(0);
-                        grabMotorR.setTargetPosition(0);
-                        rShoulder.setPosition(0.9);
-                        lShoulder.setPosition(0.1);
-                        setVertSlide(slideClipPose1);
 
-                        OutElbow.setPosition(0);
-                        twoBarL.setPosition(1);
-                        twoBarR.setPosition(0);
-                        follower.followPath(bar1, true);
+                        OutWrist.setPosition(0);
+                        OutElbow.setPosition(pickUpSpecElbow);
+                        if (specElapsedTime >= 2000) {
+                            specStep++;
+                            specStartTime = System.currentTimeMillis();
                         setPathState("clip");
                     }
                     break;
 
                 case "clip":
-                    if (pathTimer.getElapsedTime() > 2000){
-                        setVertSlide(slideClipPose2);
-                        setPathState("open claw");
+                    outtakeClawOpen = false;
+                    OutClaw.setPosition(1);
+                    if (specElapsedTime >= 3000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
                     }
+                    setPathState("next clip step");
                     break;
+                case "next clip step" :
+                    grabMotorR.setTargetPosition(600);
+                    grabMotorL.setTargetPosition(600);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("another clip step");
+                    break;
+                case "another clip step":
+                    OutElbow.setPosition(1);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("yet another");
+                    break;
+                case "yet another":
+                    rShoulder.setPosition(0.5);
+                    lShoulder.setPosition(0.5);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
 
+                    setPathState("two to go");
+                    break;
+                case "two to go":
+                    grabMotorR.setTargetPosition(1640);
+                    grabMotorL.setTargetPosition(1640);
+                    if (specElapsedTime >= 700)
+                    {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("last clip");
+                    break;
+                case "last clip":
+                    OutClaw.setPosition(clawOpen);
+                    outtakeClawOpen = true;
+                    setPathState("open claw");
+                    break;
                 case "open claw":
                     if (pathTimer.getElapsedTime() > clawWait){
-                        OutWrist.setPosition(0);
+
                         OutClaw.setPosition(clawOpen);
-                        twoBarL.setPosition(0.75);
-                        twoBarR.setPosition(0.25);
 
                         setPathState("move set1");
                     }
@@ -314,9 +360,12 @@ public class RedClip extends OpMode {
 
                 case "move set1":
                     setVertSlide(slideWall);
+
+                    follower.followPath(pushPoint1, true);
+                    rShoulder.setPosition(0.9);
+                    lShoulder.setPosition(0.1);
                     twoBarL.setPosition(1);
                     twoBarR.setPosition(0);
-                    follower.followPath(pushPoint1, true);
                     follower.followPath(pushPoint2, true);
                     setPathState("push back1");
                     break;
@@ -355,6 +404,7 @@ public class RedClip extends OpMode {
                 case "Grab1":
                     if(!follower.isBusy()){
                         OutClaw.setPosition(clawOpen);
+                        outtakeClawOpen = true;
                         follower.followPath(grab1, true);
                         setPathState("arm grab");
                     }
@@ -369,42 +419,91 @@ public class RedClip extends OpMode {
                     OutWrist.setPosition(0);
                     OutElbow.setPosition(0);
                     OutClaw.setPosition(clawClose);
-                    setPathState("Clip2");
-                    break;
-                case "Clip2":
-                    if (!follower.isBusy())
-                    {
-                        //prepare arm movements
-                        twoBarL.setPosition(0.75);
-                        twoBarR.setPosition(0.25);
 
-                        OutWrist.setPosition(wristStraight);
-                        setVertSlide(slideClipPose1);
-                        twoBarL.setPosition(1);
-                        twoBarR.setPosition(0);
-                        follower.followPath(bar2, true);
-                        setPathState("arm clip");
-                    }
+                    setPathState("move");
                     break;
-                case "arm clip":
-                    //clip movement
-                    setVertSlide(slideClipPose2);
+                case "move":
+                    if (!follower.isBusy()) {
+                        follower.followPath(bar2, true);
+                        setPathState("move to bar2");
+                    }
+                case "move to bar2":
+
+                    /*OutWrist.setPosition(0);
+                    OutElbow.setPosition(pickUpSpecElbow);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+
+                    }*/
+                    setPathState("clip2");
+                    break;
+
+                case "clip2":
+                    outtakeClawOpen = false;
+                    OutClaw.setPosition(1);
+                    if (specElapsedTime >= 3000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("next clip step2");
+                    break;
+                case "next clip step2" :
+                    grabMotorR.setTargetPosition(600);
+                    grabMotorL.setTargetPosition(600);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("another clip step2");
+                    break;
+                case "another clip step2":
+                    OutElbow.setPosition(1);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("yet another2");
+                    break;
+                case "yet another2":
+                    rShoulder.setPosition(0.5);
+                    lShoulder.setPosition(0.5);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("two to go2");
+                    break;
+                case "two to go2":
+                    grabMotorR.setTargetPosition(1640);
+                    grabMotorL.setTargetPosition(1640);
+                    if (specElapsedTime >= 700)
+                    {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("last clip2");
+                    break;
+                case "last clip2":
+                    OutClaw.setPosition(clawOpen);
+                    outtakeClawOpen = true;
                     setPathState("open claw2");
                     break;
+
                 case "open claw2":
-                    if (pathTimer.getElapsedTime() > clawWait) {
-                        OutWrist.setPosition(wristUp);
+                    if (pathTimer.getElapsedTime() > clawWait){
+
                         OutClaw.setPosition(clawOpen);
-                        twoBarL.setPosition(0.75);
-                        twoBarR.setPosition(0.25);
 
                         setPathState("Grab2");
                     }
                     break;
+
                 case "Grab2":
                     if (!follower.isBusy())
                     {
                         OutClaw.setPosition(clawOpen);
+                        outtakeClawOpen = true;
                         follower.followPath(grab2, true);
                         setPathState("arm grab2");
                     }
@@ -418,35 +517,82 @@ public class RedClip extends OpMode {
                     OutWrist.setPosition(0);
                     OutElbow.setPosition(0);
                     OutClaw.setPosition(clawClose);
-                    setPathState("Clip3");
+
+                    setPathState("move2");
                     break;
-                case "Clip3":
-                    if (!follower.isBusy())
-                    {
-                        //prepare arm movements
-                        twoBarL.setPosition(0.75);
-                        twoBarR.setPosition(0.25);
-                        setBarPose(1);
-                        OutWrist.setPosition(wristStraight);
-                        setVertSlide(slideClipPose1);
-                        twoBarL.setPosition(1);
-                        twoBarR.setPosition(0);
+                case "move2":
+                    if (!follower.isBusy()) {
                         follower.followPath(bar3, true);
-                        setPathState("arm clip2");
+                        setPathState("move to bar3");
                     }
+                case "move to bar3":
+
+                   /* OutWrist.setPosition(0);
+                    OutElbow.setPosition(pickUpSpecElbow);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+
+                    }*/
+                    setPathState("clip3");
                     break;
-                case "arm clip2":
-                    //clip movement
-                    setVertSlide(slideClipPose2);
+
+                case "clip3":
+                    outtakeClawOpen = false;
+                    OutClaw.setPosition(1);
+                    if (specElapsedTime >= 3000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("next clip step3");
+                    break;
+                case "next clip step3" :
+                    grabMotorR.setTargetPosition(600);
+                    grabMotorL.setTargetPosition(600);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("another clip step3");
+                    break;
+                case "another clip step3":
+                    OutElbow.setPosition(1);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("yet another3");
+                    break;
+                case "yet another3":
+                    rShoulder.setPosition(0.5);
+                    lShoulder.setPosition(0.5);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("two to go3");
+                    break;
+                case "two to go3":
+                    grabMotorR.setTargetPosition(1640);
+                    grabMotorL.setTargetPosition(1640);
+                    if (specElapsedTime >= 700)
+                    {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("last clip3");
+                    break;
+                case "last clip3":
+                    OutClaw.setPosition(clawOpen);
+                    outtakeClawOpen = true;
                     setPathState("open claw3");
                     break;
+
                 case "open claw3":
-                    if (pathTimer.getElapsedTime() > clawWait) {
-                        OutWrist.setPosition(wristUp);
+                    if (pathTimer.getElapsedTime() > clawWait){
+
                         OutClaw.setPosition(clawOpen);
-                        twoBarL.setPosition(0.75);
-                        twoBarR.setPosition(0.25);
-                        setBarPose(barDown);
+
                         setPathState("Grab3");
                     }
                     break;
@@ -454,6 +600,7 @@ public class RedClip extends OpMode {
                     if (!follower.isBusy())
                     {
                         OutClaw.setPosition(clawOpen);
+                        outtakeClawOpen = true;
                         follower.followPath(grab3, true);
                         setPathState("arm grab3");
                     }
@@ -467,35 +614,81 @@ public class RedClip extends OpMode {
                     OutWrist.setPosition(0);
                     OutElbow.setPosition(0);
                     OutClaw.setPosition(clawClose);
-                    setPathState("Clip4");
+                    setPathState("move3");
                     break;
-                case "Clip4":
-                    if (!follower.isBusy())
-                    {
-                        //prepare arm movements
-                        twoBarL.setPosition(0.75);
-                        twoBarR.setPosition(0.25);
-                        setBarPose(1);
-                        OutWrist.setPosition(wristStraight);
-                        setVertSlide(slideClipPose1);
-                        twoBarL.setPosition(1);
-                        twoBarR.setPosition(0);
+                case "move3":
+                    if (!follower.isBusy()) {
                         follower.followPath(bar4, true);
-                        setPathState("arm clip3");
+                        setPathState("move to bar4");
                     }
+                case "move to bar4":
+
+                    /*OutWrist.setPosition(0);
+                    OutElbow.setPosition(pickUpSpecElbow);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+
+                    }*/
+                    setPathState("clip4");
                     break;
-                case "arm clip3":
-                    //clip movement
-                    setVertSlide(slideClipPose2);
+
+                case "clip4":
+                    outtakeClawOpen = false;
+                    OutClaw.setPosition(1);
+                    if (specElapsedTime >= 3000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("next clip step4");
+                    break;
+                case "next clip step4" :
+                    grabMotorR.setTargetPosition(600);
+                    grabMotorL.setTargetPosition(600);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("another clip step4");
+                    break;
+                case "another clip step4":
+                    OutElbow.setPosition(1);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("yet another4");
+                    break;
+                case "yet another4":
+                    rShoulder.setPosition(0.5);
+                    lShoulder.setPosition(0.5);
+                    if (specElapsedTime >= 2000) {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("two to go4");
+                    break;
+                case "two to go4":
+                    grabMotorR.setTargetPosition(1640);
+                    grabMotorL.setTargetPosition(1640);
+                    if (specElapsedTime >= 700)
+                    {
+                        specStep++;
+                        specStartTime = System.currentTimeMillis();
+                    }
+                    setPathState("last clip4");
+                    break;
+                case "last clip4":
+                    OutClaw.setPosition(clawOpen);
+                    outtakeClawOpen = true;
                     setPathState("open claw4");
                     break;
+
                 case "open claw4":
-                    if (pathTimer.getElapsedTime() > clawWait) {
-                        OutWrist.setPosition(wristUp);
+                    if (pathTimer.getElapsedTime() > clawWait){
+
                         OutClaw.setPosition(clawOpen);
-                        twoBarL.setPosition(0.75);
-                        twoBarR.setPosition(0.25);
-                        setBarPose(barDown);
+
                         setPathState("end");
                     }
                     break;
