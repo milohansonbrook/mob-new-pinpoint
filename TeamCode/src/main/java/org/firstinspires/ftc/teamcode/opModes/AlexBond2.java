@@ -67,7 +67,7 @@ public class AlexBond2 extends LinearOpMode {
     double drivePower;
     public static int wait1 = 300;
     public static int wait2 = 250;
-    public static int wait3 = 10;
+    int wait3 = 700;
     public static int wait4 = 400;
     public static int wait5 = 500;
     private Follower follower;
@@ -176,7 +176,36 @@ public class AlexBond2 extends LinearOpMode {
                 intakeBarR.setPosition(intakeBarR.getPosition() + barInterval * gamepad1.right_trigger);
             }
 //Code Booleans!!!________________________________________________________________________
-
+            if (intakeBarL.getPosition() > 0.9) {
+                wait3 = 700;
+            }
+            else if (intakeBarL.getPosition() > 0.8) {
+                wait3 = 644;
+            }
+            else if (intakeBarL.getPosition() > 0.7) {
+                wait3 = 589;
+            }
+            else if (intakeBarL.getPosition() > 0.6) {
+                wait3 = 534;
+            }
+            else if (intakeBarL.getPosition() > 0.5) {
+                wait3 = 479;
+            }
+            else if (intakeBarL.getPosition() > 0.4) {
+                wait3 = 424;
+            }
+            else if (intakeBarL.getPosition() > 0.3) {
+                wait3 = 369;
+            }
+            else if (intakeBarL.getPosition() > 0.2) {
+                wait3 = 314;
+            }
+            else if (intakeBarL.getPosition() > 0.1) {
+                wait3 = 259;
+            }
+            else {
+                wait3 = 200;
+            }
             if (intakeClawOpen) {
                 intakeClaw.setPosition(0);
             }
@@ -289,25 +318,24 @@ public class AlexBond2 extends LinearOpMode {
                             break;
 
                         case 1:
-                            shoulderL.setPosition(0.48);
-                            shoulderR.setPosition(0.52);
-                            outtakeWrist.setPosition(0.42);
-                            outtakeElbow.setPosition(0.17);
+                            shoulderL.setPosition(0.46);
+                            shoulderR.setPosition(0.54);
                             if (transferElapsedTime >= wait2) {
                                 transferStep++;
                                 transferStartTime = System.currentTimeMillis();
                             }
                             break;
                         case 2:
-                            outtakeClaw.setPosition(1);
-                            outtakeClawOpen = false;
+                            outtakeWrist.setPosition(0.42);
+                            outtakeElbow.setPosition(0.17);
                             if (transferElapsedTime >= wait3) {
                                 transferStep++;
                                 transferStartTime = System.currentTimeMillis();
                             }
                             break;
-                            /*
                         case 3:
+                            outtakeClaw.setPosition(1);
+                            outtakeClawOpen = false;
                             intakeClaw.setPosition(0);
                             intakeClawOpen = true;
                             if (transferElapsedTime >= wait4) {
@@ -329,8 +357,6 @@ public class AlexBond2 extends LinearOpMode {
                                 transferStartTime = System.currentTimeMillis();
                             }
                             break;
-
-                             */
                     }
                 }
                 //spec sequence
