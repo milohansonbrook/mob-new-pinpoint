@@ -8,18 +8,15 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp
 @Config
 public class die extends LinearOpMode {
-    Servo one;
     Servo two;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        one = hardwareMap.get(Servo.class, "shoulderR");
-        two = hardwareMap.get(Servo.class, "shoulderL");
+        two = hardwareMap.get(Servo.class, "intakeElbow");
         waitForStart();
         while (opModeIsActive())
         {
-            one.setPosition(1);
-            two.setPosition(0);
+            two.setPosition(0.5);
         }
     }
 }

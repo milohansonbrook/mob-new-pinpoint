@@ -21,9 +21,10 @@ public class AlexBond2 extends LinearOpMode {
     public double wristInterval = 0.01;
     public double clawInterval = 0.01;
     public double shoulderInterval = 0.01;
-    public double elbowDown = 1;
-    public double elbowHunting = 0.85;
-    public double elbowUp = 0;
+    public double elbowDown = 0.15; //updated elbow vals
+    public double elbowHunting = 0.25;
+    public double elbowUp = 0.8;
+    public static double pickUpSpecElbow = 0;
     public double wristHoriz = 0.17;
     long transferStartTime = 0;
     int transferStep = 0;
@@ -53,7 +54,10 @@ public class AlexBond2 extends LinearOpMode {
     DcMotor slideMotorL;//3C
     boolean transferActive;
     boolean transferComplete;
-    boolean specMode = false;
+    boolean transferMode;
+    boolean transferLast;
+    boolean specMode;
+    boolean specLast;
     boolean specActive;
     boolean specComplete;
     boolean outtakeClawOpen = true;
@@ -65,11 +69,12 @@ public class AlexBond2 extends LinearOpMode {
     boolean yLast;
     boolean halfSpeed;
     double drivePower;
-    public static int wait1 = 300;
+    public static int wait1 = 500;
     public static int wait2 = 250;
     public static int wait3 = 700;
     public static int wait4 = 400;
     public static int wait5 = 500;
+    public static int wait6 = 500;
     private Follower follower;
     private final Pose startPose = new Pose(0,0,0);
 
@@ -118,8 +123,7 @@ public class AlexBond2 extends LinearOpMode {
         intakeWrist.setPosition(0.5);
         intakeWrist.scaleRange(0.18, 0.82);
         intakeElbow = hardwareMap.get(Servo.class, "intakeElbow");
-        intakeElbow.setPosition(0.6);
-        intakeElbow.scaleRange(0.23, 0.76);
+        intakeElbow.setPosition(0.5);
 
         slideMotorL = hardwareMap.get(DcMotor.class, "slideMotorL");
         slideMotorL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -252,39 +256,70 @@ public class AlexBond2 extends LinearOpMode {
                     slideMotorL.setTargetPosition(slideMotorL.getTargetPosition() - 10);
                 }
             }
-            if (gamepad1.b && !transferActive) {
-                slideMotorL.setTargetPosition(0);
-                slideMotorR.setTargetPosition(0);
-                intakeClawOpen = false;
-                intakeElbow.setPosition(elbowUp);
-                intakeWrist.setPosition(1);
-                outtakeElbow.setPosition(0.1);
-                outtakeWrist.setPosition(0.42);
-                shoulderL.setPosition(0.52);
-                shoulderR.setPosition(0.48);
-                transferStep = 0;
-                transferActive = true;
-                transferComplete = false;
-                transferStartTime = System.currentTimeMillis();
+
+            if (gamepad1.b && !transferLast) {
+                transferMode = !transferMode;
             }
 
-            if (gamepad1.x) {
-                specMode = !specMode;
-                slideMotorL.setTargetPosition(0);
-                slideMotorR.setTargetPosition(0);
-                shoulderR.setPosition(0.9);
-                shoulderL.setPosition(0.1);
-                outtakeWrist.setPosition(0);
-                outtakeElbow.setPosition(0);
-                outtakeClawOpen = true;
+            transferLast = gamepad1.b;
+            if (transferMode) {
+                if (gamepad1.b && !transferActive) {
+                    slideMotorL.setTargetPosition(0);
+                    slideMotorR.setTargetPosition(0);
+                    intakeClawOpen = false;
+                    intakeElbow.setPosition(elbowUp);
+                    intakeWrist.setPosition(1);
+                    outtakeElbow.setPosition(0.1);
+                    outtakeWrist.setPosition(0.42);
+                    shoulderL.setPosition(0.52);
+                    shoulderR.setPosition(0.48);
+                    transferStep = 0;
+                    transferActive = true;
+                    transferComplete = false;
+                    transferStartTime = System.currentTimeMillis();
+                }
             }
+            else {
+                if (gamepad1.b) {
+                    slideMotorL.setTargetPosition(0);
+                    slideMotorR.setTargetPosition(0);
+                    intakeClawOpen = true;
+                    intakeElbow.setPosition(elbowHunting);
+                    hunting = true;
+                    intakeWrist.setPosition(1);
+                    outtakeElbow.setPosition(0.1);
+                    outtakeWrist.setPosition(0.42);
+                    shoulderL.setPosition(0.52);
+                    shoulderR.setPosition(0.48);
+                }
+            }
+            if (gamepad1.x && !specLast) {
+                specMode = !specMode;
+            }
+
+            specLast = gamepad1.x;
             if (specMode) {
+                if (gamepad1.x) {
+                    slideMotorL.setTargetPosition(0);
+                    slideMotorR.setTargetPosition(0);
+                    shoulderR.setPosition(0.9);
+                    shoulderL.setPosition(0.1);
+                    outtakeWrist.setPosition(0);
+                    outtakeElbow.setPosition(0);
+                    outtakeClawOpen = true;
+                }
                 if (gamepad1.a && !specActive) {
                     specStep = 0;
                     specActive = true;
                     specComplete = false;
                     specStartTime = System.currentTimeMillis();
                 }
+            }
+            else {
+                if (gamepad1.a && !aLast) {
+                    intakeClawOpen = !intakeClawOpen;
+                }
+                aLast = gamepad1.a;
             }
 
 //Code Actions!!!________________________________________________________________________
@@ -294,112 +329,121 @@ public class AlexBond2 extends LinearOpMode {
             if (gamepad1.right_stick_button) wristAdjust();
 
 
-            if (gamepad1.a && !aLast) {
-                intakeClawOpen = !intakeClawOpen;
-            }
-            aLast = gamepad1.a;
-
             if (gamepad1.y && !yLast) {
                 outtakeClawOpen = !outtakeClawOpen;
             }
             yLast = gamepad1.y;
 
-//SAMPLE TRANSFER SEQUENCE BELOW
-                if (transferActive && !transferComplete) {
-                    long transferElapsedTime = System.currentTimeMillis() - transferStartTime;
-                    switch (transferStep) {
-                        //point elbow down when over sample
-                        case 0:
-                            shoulderL.setPosition(0.5);
-                            shoulderR.setPosition(0.5);
-                            slideMotorL.setTargetPosition(0);
-                            slideMotorR.setTargetPosition(0);
-                            intakeBarL.setPosition(0.85);
-                            intakeBarR.setPosition(0.15);
-                            if (transferElapsedTime >= wait1) {
-                                transferStep++;
-                                transferStartTime = System.currentTimeMillis();
-                            }
-                            break;
-
-                        case 1:
-                            outtakeWrist.setPosition(0.42);
-                            outtakeElbow.setPosition(0.17);
-                            if (transferElapsedTime >= wait2) {
-                                transferStep++;
-                                transferStartTime = System.currentTimeMillis();
-                            }
-                            break;
-                        case 2:
-                            shoulderL.setPosition(0.47);
-                            shoulderR.setPosition(0.53);
-                            if (transferElapsedTime >= wait3) {
-                                transferStep++;
-                                transferStartTime = System.currentTimeMillis();
-                            }
-                            break;
-                        case 3:
-                            outtakeClaw.setPosition(1);
-                            outtakeClawOpen = false;
-                            intakeClaw.setPosition(0);
-                            intakeClawOpen = true;
-                            if (transferElapsedTime >= wait4) {
-                                transferStep++;
-                                transferStartTime = System.currentTimeMillis();
-                            }
-                            break;
-                        case 4:
-                            shoulderL.setPosition(1);
-                            shoulderR.setPosition(0);
-                            slideMotorL.setTargetPosition(2000);
-                            slideMotorR.setTargetPosition(2000);
-                            outtakeWrist.setPosition(0);
-                            outtakeElbow.setPosition(1);
-                            transferComplete = true;
-                            transferActive = false;
-                            if (transferElapsedTime >= wait5) {
-                                transferStep++;
-                                transferStartTime = System.currentTimeMillis();
-                            }
-                            break;
-                    }
-                }
-                //spec sequence
-            if (specActive && !specComplete) {
-                long specElapsedTime = System.currentTimeMillis() - specStartTime;
-                switch (specStep) {
+//SAMPLE TRANSFER SEQUENCE BELOW7
+            if (transferActive && !transferComplete) {
+                long transferElapsedTime = System.currentTimeMillis() - transferStartTime;
+                switch (transferStep) {
+                    //point elbow down when over sample
                     case 0:
-                        outtakeClawOpen = false;
-                        if (specElapsedTime >= 2000) {
-                            specStep++;
-                            specStartTime = System.currentTimeMillis();
+                        shoulderL.setPosition(0.5);
+                        shoulderR.setPosition(0.5);
+                        outtakeWrist.setPosition(0.42);
+                        outtakeElbow.setPosition(0.17);
+                        intakeBarL.setPosition(0.85);
+                        intakeBarR.setPosition(0.15);
+                        if (transferElapsedTime >= wait1) {
+                            transferStep++;
+                            transferStartTime = System.currentTimeMillis();
                         }
                         break;
+
                     case 1:
-                        slideMotorR.setTargetPosition(600);
-                        slideMotorL.setTargetPosition(600);
-                        if (specElapsedTime >= 2000) {
-                            specStep++;
-                            specStartTime = System.currentTimeMillis();
+                        slideMotorL.setTargetPosition(0);
+                        slideMotorR.setTargetPosition(0);
+                        if (transferElapsedTime >= wait2) {
+                            transferStep++;
+                            transferStartTime = System.currentTimeMillis();
                         }
                         break;
                     case 2:
-                        outtakeElbow.setPosition(1);
-                        if (specElapsedTime >= 2000) {
-                            specStep++;
-                            specStartTime = System.currentTimeMillis();
+                        shoulderL.setPosition(0.46);
+                        shoulderR.setPosition(0.54);
+                        if (transferElapsedTime >= wait3) {
+                            transferStep++;
+                            transferStartTime = System.currentTimeMillis();
                         }
                         break;
                     case 3:
-                        shoulderR.setPosition(0.5);
-                        shoulderL.setPosition(0.5);
-                        if (specElapsedTime >= 2000) {
-                            specStep++;
-                            specStartTime = System.currentTimeMillis();
+                        outtakeClaw.setPosition(1);
+                        outtakeClawOpen = false;
+                        if (transferElapsedTime >= wait4) {
+                            transferStep++;
+                            transferStartTime = System.currentTimeMillis();
+                        }
+                        break;
+                    case 4:
+                        intakeClaw.setPosition(0);
+                        intakeClawOpen = true;
+                        if (transferElapsedTime >= wait4) {
+                            transferStep++;
+                            transferStartTime = System.currentTimeMillis();
+                        }
+                    case 5:
+                        shoulderL.setPosition(1);
+                        shoulderR.setPosition(0);
+                        slideMotorL.setTargetPosition(2000);
+                        slideMotorR.setTargetPosition(2000);
+                        outtakeWrist.setPosition(0);
+                        outtakeElbow.setPosition(1);
+                        transferComplete = true;
+                        transferActive = false;
+                        if (transferElapsedTime >= wait5) {
+                            transferStep++;
+                            transferStartTime = System.currentTimeMillis();
                         }
                         break;
                 }
             }
+                //spec sequenc
+
+                if (specActive && !specComplete) {
+                    long specElapsedTime = System.currentTimeMillis() - specStartTime;
+                    switch (specStep) {
+                        case 0:
+                            outtakeWrist.setPosition(0);
+                            outtakeElbow.setPosition(pickUpSpecElbow);
+                            if (specElapsedTime >= 2000) {
+                                specStep++;
+                                specStartTime = System.currentTimeMillis();
+                            }
+                            break;
+                        case 1:
+                            outtakeClawOpen = false;
+                            outtakeClaw.setPosition(1);
+                            if (specElapsedTime >= 3000) {
+                                specStep++;
+                                specStartTime = System.currentTimeMillis();
+                            }
+                        case 2:
+                            slideMotorR.setTargetPosition(600);
+                            slideMotorL.setTargetPosition(600);
+                            if (specElapsedTime >= 2000) {
+                                specStep++;
+                                specStartTime = System.currentTimeMillis();
+                            }
+                            break;
+                        case 3:
+                            outtakeElbow.setPosition(1);
+                            if (specElapsedTime >= 2000) {
+                                specStep++;
+                                specStartTime = System.currentTimeMillis();
+                            }
+                            break;
+                        case 4:
+                            shoulderR.setPosition(0.5);
+                            shoulderL.setPosition(0.5);
+                            if (specElapsedTime >= 2000) {
+                                specStep++;
+                                specStartTime = System.currentTimeMillis();
+                            }
+                            break;
+                    }
+                }
             telemetry.addData("outtake claw pos", outtakeClaw.getPosition());
             telemetry.addData("outtake wrist pos", outtakeWrist.getPosition());
             telemetry.addData("outtake elbow pos", outtakeElbow.getPosition());

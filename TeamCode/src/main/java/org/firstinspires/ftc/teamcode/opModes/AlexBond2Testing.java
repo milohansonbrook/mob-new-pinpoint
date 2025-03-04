@@ -14,12 +14,17 @@ public class AlexBond2Testing extends LinearOpMode {
     public double wristInterval = 0.01;
     public double clawInterval = 0.01;
     public double shoulderInterval = 0.01;
-    public double elbowDown = 1;
-    public double elbowHunting = 0.85;
-    public double elbowUp = 0;
+    public static double elbowDown = 0.18; //fixed
+    public static double elbowHunting = 0.25;
+    public static double elbowUp = 0.8;
+
+    public static double pickUpSpecElbow = 0;
     public double wristHoriz = 0.17;
     double transferStartTime = System.currentTimeMillis();
     int transferStep = 0;
+    long specStartTime = 0;
+    int specStep = 0;
+
     // left Servo (two bar)
     Servo intakeBarL; //0C
     // right Servo
@@ -46,6 +51,8 @@ public class AlexBond2Testing extends LinearOpMode {
     boolean intakeClawOpen = true;
     boolean aLast;
     boolean yLast;
+    boolean specActive;
+    boolean specComplete;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -79,25 +86,86 @@ public class AlexBond2Testing extends LinearOpMode {
         intakeWrist.setPosition(0.5);
         intakeWrist.scaleRange(0.5, 0.8);
         intakeElbow = hardwareMap.get(Servo.class, "intakeElbow");
-        intakeElbow.setPosition(0.6);
-        intakeElbow.scaleRange(0.23, 0.76);
+        intakeElbow.setPosition(0.5);
 
         slideMotorL = hardwareMap.get(DcMotor.class, "slideMotorL");
         slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideMotorL.setTargetPosition(0);
         slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slideMotorL.setPower(1);
-
         slideMotorR = hardwareMap.get(DcMotor.class, "slideMotorR");
         slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideMotorR.setDirection(DcMotorSimple.Direction.REVERSE);
         slideMotorR.setTargetPosition(0);
         slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slideMotorR.setPower(1);
-
+waitForStart();
         //pre init code above________________________________________________________________________________________________________________________________
-        waitForStart();
+        while(opModeIsActive()) {
+            if (gamepad1.a) {
+                specStep = 0;
+                specActive = true;
+                specComplete = false;
+                specStartTime = System.currentTimeMillis();
+            }
 
+            if (specActive && !specComplete) {
+                long specElapsedTime = System.currentTimeMillis() - specStartTime;
+                switch (specStep) {
+                    case 0:
+                        outtakeWrist.setPosition(0);
+                        outtakeElbow.setPosition(pickUpSpecElbow);
+                        if (specElapsedTime >= 2000) {
+                            specStep++;
+                            specStartTime = System.currentTimeMillis();
+                        }
+                        break;
+                    case 1:
+                        outtakeClawOpen = false;
+                        outtakeClaw.setPosition(1);
+                        if (specElapsedTime >= 3000) {
+                            specStep++;
+                            specStartTime = System.currentTimeMillis();
+                        }
+                    case 2:
+                        slideMotorR.setTargetPosition(600);
+                        slideMotorL.setTargetPosition(600);
+                        if (specElapsedTime >= 2000) {
+                            specStep++;
+                            specStartTime = System.currentTimeMillis();
+                        }
+                        break;
+                    case 3:
+                        outtakeElbow.setPosition(1);
+                        if (specElapsedTime >= 2000) {
+                            specStep++;
+                            specStartTime = System.currentTimeMillis();
+                        }
+                        break;
+                    case 4:
+                        shoulderR.setPosition(0.5);
+                        shoulderL.setPosition(0.5);
+                        if (specElapsedTime >= 2000) {
+                            specStep++;
+                            specStartTime = System.currentTimeMillis();
+                        }
+                        break;
+                }
+            }
+        /*
+            if (gamepad1.left_bumper) {
+                intakeElbow.setPosition(elbowHunting);
+            }
+            if (gamepad1.right_bumper) {
+                intakeElbow.setPosition(elbowDown);
+            }
+            if (gamepad1.a) {
+                intakeElbow.setPosition(elbowUp);
+            }
+            */
+
+        }
+/*
 //TWO BAR ADJUSTMENT________________________________________________________________________
 
         while (opModeIsActive()) {
@@ -158,7 +226,7 @@ public class AlexBond2Testing extends LinearOpMode {
                 shoulderR.setPosition(shoulderR.getPosition() + shoulderInterval);
                 shoulderL.setPosition(shoulderL.getPosition() - shoulderInterval);
             }
-            /*
+
 //Code Booleans!!!________________________________________________________________________
 
             if (intakeClawOpen) intakeClaw.setPosition(0);
@@ -166,18 +234,9 @@ public class AlexBond2Testing extends LinearOpMode {
 
             if (outtakeClawOpen) outtakeClaw.setPosition(0);
             else outtakeClaw.setPosition(1);
-
+*/
 //Code Actions!!!________________________________________________________________________
-            if (gamepad1.left_bumper) {
-                intakeElbow.setPosition(elbowHunting);
-            }
-            if (gamepad1.right_bumper) {
-                intakeElbow.setPosition(elbowDown);
-            }
-            if (gamepad1.a && !aLast) {
-                intakeClawOpen = !intakeClawOpen;
-            }
-            aLast = gamepad1.a;
+            /*
 // Sequence Starts and Stops_______________________________________________________________
             if (gamepad1.dpad_up && !transferActive) {
                 intakeElbow.setPosition(elbowUp);
@@ -283,7 +342,6 @@ public class AlexBond2Testing extends LinearOpMode {
             telemetry.update();
         }
     }
-}
 
 
 
