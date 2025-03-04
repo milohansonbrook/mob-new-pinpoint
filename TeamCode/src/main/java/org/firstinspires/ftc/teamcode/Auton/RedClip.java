@@ -158,8 +158,7 @@ public class RedClip extends OpMode {
         OutClaw = hardwareMap.get(Servo.class, "outtakeClaw");
         OutClaw.scaleRange(0.4, 0.7);
         OutClaw.setPosition(OutClawInit);
-        OutWrist.setPosition(0);
-        OutElbow.setPosition(pickUpSpecElbow);
+
 
 
 
@@ -193,7 +192,9 @@ public class RedClip extends OpMode {
     @Override
     public void start() {
         opmodeTimer.resetTimer();
-        setPathState("set slurp");
+        OutWrist.setPosition(0);
+        OutElbow.setPosition(pickUpSpecElbow);
+        setPathState("set wrist");
     }
 
     public void buildPaths() {
@@ -359,14 +360,16 @@ public class RedClip extends OpMode {
                     break;
 
                 case "move set1":
-                    setVertSlide(slideWall);
+                    if (!follower.isBusy()) {
+                        setVertSlide(slideWall);
 
-                    follower.followPath(pushPoint1, true);
-                    rShoulder.setPosition(0.9);
-                    lShoulder.setPosition(0.1);
-                    twoBarL.setPosition(1);
-                    twoBarR.setPosition(0);
-                    follower.followPath(pushPoint2, true);
+                        follower.followPath(pushPoint1, true);
+                        rShoulder.setPosition(0.9);
+                        lShoulder.setPosition(0.1);
+                        twoBarL.setPosition(1);
+                        twoBarR.setPosition(0);
+                        follower.followPath(pushPoint2, true);
+                    }
                     setPathState("push back1");
                     break;
 
