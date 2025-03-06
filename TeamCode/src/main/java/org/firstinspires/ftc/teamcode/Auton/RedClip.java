@@ -568,7 +568,7 @@ public class RedClip extends OpMode {
                         setPathState("Grab1");
                     }
                     break;*/
-                case "Grab1":
+                case "Grab1": //help meeeee
                     if (!follower.isBusy()) {
 
                         follower.followPath(grab1, true);
