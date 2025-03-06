@@ -18,10 +18,7 @@ import pedroPathing.constants.LConstants;
 @TeleOp
 @Config
 public class AlexBond2 extends LinearOpMode {
-    public double barInterval = 0.007;
-    public double wristInterval = 0.01;
-    public double clawInterval = 0.01;
-    public double shoulderInterval = 0.01;
+    public double barInterval = 0.01;
     public double elbowDown = 0.23; //updated elbow vals
     public double elbowHunting = 0.32;
     public double elbowUp = 0.85;
@@ -31,6 +28,8 @@ public class AlexBond2 extends LinearOpMode {
     int transferStep = 0;
     long specStartTime = 0;
     int specStep = 0;
+    long upStartTime;
+    int upStep;
     // left Servo (two bar)
     Servo intakeBarL; //0C
     // right Servo
@@ -57,10 +56,12 @@ public class AlexBond2 extends LinearOpMode {
     boolean transferComplete;
     boolean transferMode;
     boolean transferLast;
-    boolean specMode;
+    boolean specMode = false;
     boolean specLast;
     boolean specActive;
     boolean specComplete;
+    boolean upActive;
+    boolean upComplete;
     boolean outtakeClawOpen = true;
     boolean intakeClawOpen = true;
     boolean hunting;
@@ -71,7 +72,7 @@ public class AlexBond2 extends LinearOpMode {
     boolean halfSpeed;
     double drivePower;
     public static int wait1 = 500;
-    public static int wait2 = 250;
+    public static int wait2 = 500;
     public static int wait3 = 700;
     public static int wait4 = 400;
     public static int wait5 = 500;
@@ -108,7 +109,7 @@ public class AlexBond2 extends LinearOpMode {
         outtakeWrist.setPosition(0.55);
         outtakeWrist.scaleRange(0.25, 0.9);
         outtakeElbow = hardwareMap.get(Servo.class, "outtakeElbow");
-        outtakeElbow.setPosition(0.2);
+        outtakeElbow.setPosition(0.75);
         shoulderL = hardwareMap.get(Servo.class, "shoulderL");
         shoulderL.setPosition(0.37);
         shoulderL.scaleRange(0.1, 0.95);
@@ -192,6 +193,13 @@ public class AlexBond2 extends LinearOpMode {
                 outtakeClawOpen = !outtakeClawOpen;
             }
             yLast = gamepad1.y;
+
+            //intake claw
+            if (gamepad1.a && !aLast) {
+                intakeClawOpen = !intakeClawOpen;
+            }
+            aLast = gamepad1.a;
+
 //BOOLEANS
             if (intakeClawOpen) {
                 intakeClaw.setPosition(0);
@@ -225,12 +233,19 @@ public class AlexBond2 extends LinearOpMode {
                 if (gamepad1.dpad_right) {
                     intakeElbow.setPosition(elbowDown);
                     intakeClawOpen = false;
-                } else if (gamepad1.dpad_up && slideMotorR.getCurrentPosition() < 2300) {
-                    slideMotorR.setTargetPosition(slideMotorR.getTargetPosition() + 10);
-                    slideMotorL.setTargetPosition(slideMotorL.getTargetPosition() + 10);
-                } else if (gamepad1.dpad_down && slideMotorR.getCurrentPosition() > 0) {
-                    slideMotorR.setTargetPosition(slideMotorR.getTargetPosition() - 10);
-                    slideMotorL.setTargetPosition(slideMotorL.getTargetPosition() - 10);
+                }
+
+                else if (gamepad1.dpad_up) {
+                    specStep = 0;
+                    specActive = true;
+                    specComplete = false;
+                    specStartTime = System.currentTimeMillis();
+                }
+                if (gamepad1.dpad_down) {
+                    upStep = 0;
+                    upActive = true;
+                    upComplete = false;
+                    upStartTime = System.currentTimeMillis();
                 }
             }
     //TRANSFER TOGGLE
@@ -241,84 +256,67 @@ public class AlexBond2 extends LinearOpMode {
             transferLast = gamepad1.b;
             if (transferMode) {
                 if (gamepad1.b && !transferActive) {
+                    outtakeClawOpen = true;
                     slideMotorL.setTargetPosition(0);
                     slideMotorR.setTargetPosition(0);
                     intakeClawOpen = false;
                     intakeElbow.setPosition(elbowUp);
                     intakeWrist.setPosition(1);
-                    outtakeElbow.setPosition(0.1); //adjust
+                    outtakeElbow.setPosition(0.6);
                     outtakeWrist.setPosition(0.42);
-                    shoulderL.setPosition(0.52);
-                    shoulderR.setPosition(0.48);
+                    shoulderL.setPosition(0.48);
+                    shoulderR.setPosition(0.52);
                     transferStep = 0;
                     transferActive = true;
                     transferComplete = false;
                     transferStartTime = System.currentTimeMillis();
-
-                    if (gamepad1.a && !aLast) {
-                        intakeClawOpen = !intakeClawOpen;
-                    }
-                    aLast = gamepad1.a;
-                    if (gamepad1.x) {
-                        shoulderR.setPosition(0.9);
-                        shoulderL.setPosition(0.1);
-                        outtakeWrist.setPosition(0);
-                        outtakeElbow.setPosition(0);
-                        outtakeClawOpen = true;
-                        slideMotorL.setTargetPosition(0);
-                        slideMotorR.setTargetPosition(0);
-                    }
                 }
             } else {
                 if (gamepad1.b) {
+                    outtakeClawOpen = true;
                     slideMotorL.setTargetPosition(0);
                     slideMotorR.setTargetPosition(0);
                     intakeClawOpen = true;
                     intakeElbow.setPosition(elbowHunting);
                     hunting = true;
                     intakeWrist.setPosition(1);
-                    outtakeElbow.setPosition(0.1); //adjust SAME
+                    outtakeElbow.setPosition(0.6);
                     outtakeWrist.setPosition(0.42);
-                    shoulderL.setPosition(0.52);
-                    shoulderR.setPosition(0.48);
+                    shoulderL.setPosition(0.48);
+                    shoulderR.setPosition(0.52);
                 }
-                if (gamepad1.x && !specLast) {
-                    specMode = !specMode;
-                }
+            }
+            if (gamepad1.x && !specLast) {
+                specMode = !specMode;
+            }
 
-                specLast = gamepad1.x;
-                if (specMode) {
-                    if (gamepad1.x) {
-                        shoulderR.setPosition(0.9);
-                        shoulderL.setPosition(0.1);
-                        outtakeWrist.setPosition(0);
-                        outtakeElbow.setPosition(0.5);
-                        outtakeClawOpen = true;
-                        slideMotorL.setTargetPosition(0);
-                        slideMotorR.setTargetPosition(0);
-                        //COLOR SENSOR CODE CLOSE HERE WITH SLIDES UP
-                    }
-                    if (gamepad1.a && !specActive) {
-                        specStep = 0;
-                        specActive = true;
-                        specComplete = false;
-                        specStartTime = System.currentTimeMillis();
-                    }
+            specLast = gamepad1.x;
+
+            if (specMode) {
+                if (gamepad1.x) {
+                    slideMotorR.setTargetPosition(0);
+                    slideMotorL.setTargetPosition(0);
+                    shoulderR.setPosition(0.9);
+                    shoulderL.setPosition(0.1);
+                    outtakeWrist.setPosition(0);
+                    outtakeElbow.setPosition(0.5);
+                    outtakeClawOpen = true;
+                    slideMotorL.setTargetPosition(0);
+                    slideMotorR.setTargetPosition(0);
+                    //COLOR SENSOR CODE CLOSE HERE WITH SLIDES UP
                 }
-                else {
-                    if (gamepad1.a && !aLast) {
-                        intakeClawOpen = !intakeClawOpen;
-                    }
-                    aLast = gamepad1.a;
-                    if (gamepad1.x) {
-                        shoulderR.setPosition(0.9);
-                        shoulderL.setPosition(0.1);
-                        outtakeWrist.setPosition(0);
-                        outtakeElbow.setPosition(0);
-                        outtakeClawOpen = true;
-                        slideMotorL.setTargetPosition(0);
-                        slideMotorR.setTargetPosition(0);
-                    }
+            }
+            else {
+                if (gamepad1.x) {
+                    slideMotorR.setTargetPosition(0);
+                    slideMotorL.setTargetPosition(0);
+                    shoulderR.setPosition(0.9);
+                    shoulderL.setPosition(0.1);
+                    outtakeWrist.setPosition(0);
+                    outtakeElbow.setPosition(0);
+                    outtakeClawOpen = true;
+                    slideMotorL.setTargetPosition(0);
+                    slideMotorR.setTargetPosition(0);
                 }
             }
 
@@ -328,29 +326,31 @@ public class AlexBond2 extends LinearOpMode {
                     switch (transferStep) {
                         //point elbow down when over sample
                         case 0:
-                            shoulderL.setPosition(0.54);
-                            shoulderR.setPosition(0.46);
-                            outtakeWrist.setPosition(0.42);
-                            outtakeElbow.setPosition(0.17); // ADJUST
-                            intakeBarL.setPosition(0.85);
-                            intakeBarR.setPosition(0.15);
+                            intakeBarL.setPosition(0.8);
+                            intakeBarR.setPosition(0.2);
+                            shoulderL.setPosition(0.48);
+                            shoulderR.setPosition(0.52);
+                            outtakeWrist.setPosition(0);
+                            outtakeElbow.setPosition(0.6);
                             if (transferElapsedTime >= wait1) {
                                 transferStep++;
                                 transferStartTime = System.currentTimeMillis();
                             }
                             break;
-
                         case 1:
+                            intakeBarL.setPosition(0.85);
+                            intakeBarR.setPosition(0.15);
                             slideMotorL.setTargetPosition(0);
                             slideMotorR.setTargetPosition(0);
+                            intakeWrist.setPosition(0.5);
                             if (transferElapsedTime >= wait2) {
                                 transferStep++;
                                 transferStartTime = System.currentTimeMillis();
                             }
                             break;
                         case 2:
-                            shoulderL.setPosition(0.45);
-                            shoulderR.setPosition(0.55);
+                            shoulderL.setPosition(0.43);
+                            shoulderR.setPosition(0.57);
                             if (transferElapsedTime >= wait3) {
                                 transferStep++;
                                 transferStartTime = System.currentTimeMillis();
@@ -374,10 +374,10 @@ public class AlexBond2 extends LinearOpMode {
                         case 5:
                             shoulderL.setPosition(1);
                             shoulderR.setPosition(0);
-                            slideMotorL.setTargetPosition(2000);
-                            slideMotorR.setTargetPosition(2000);
+                            slideMotorL.setTargetPosition(2250);
+                            slideMotorR.setTargetPosition(2250);
                             outtakeWrist.setPosition(0);
-                            outtakeElbow.setPosition(1); //adjust
+                            outtakeElbow.setPosition(1);
                             transferComplete = true;
                             transferActive = false;
                             if (transferElapsedTime >= wait5) {
@@ -408,30 +408,57 @@ public class AlexBond2 extends LinearOpMode {
                             }
                             break;
                         case 2:
-                            shoulderL.setPosition(0.35);
-                            shoulderR.setPosition(0.65);
+                            shoulderL.setPosition(0.3);
+                            shoulderR.setPosition(0.6);
                             if (specElapsedTime >= 1000) {
-                                specStep++;
-                                specStartTime = System.currentTimeMillis();
-                            }
-                            break;
-                        case 3:
-                            slideMotorL.setTargetPosition(1730);
-                            slideMotorR.setTargetPosition(1730);
-                            if (specElapsedTime >= 700) {
-                                specStep++;
-                                specStartTime = System.currentTimeMillis();
-                            }
-                            break;
-                        case 4:
-                            outtakeClawOpen = true;
-                            if (specElapsedTime >= 400) {
                                 specStep++;
                                 specStartTime = System.currentTimeMillis();
                             }
                             break;
                     }
                 }
+
+            if (upActive && !upComplete) {
+                long upElapsedTime = System.currentTimeMillis() - upStartTime;
+                switch (upStep) {
+                    case 0:
+                        slideMotorL.setTargetPosition(1790);
+                        slideMotorR.setTargetPosition(1790);
+                        if (upElapsedTime >= 700) {
+                            upStep++;
+                            upStartTime = System.currentTimeMillis();
+                        }
+                        break;
+                    case 1:
+                        outtakeClawOpen = true;
+                        if (upElapsedTime >= 400) {
+                            upStep++;
+                            upStartTime = System.currentTimeMillis();
+                        }
+                        break;
+                    case 2:
+                        shoulderL.setPosition(0.45);
+                        shoulderR.setPosition(0.55);
+                        if (upElapsedTime >= 500) {
+                            upStep++;
+                            upStartTime = System.currentTimeMillis();
+                        }
+                        break;
+                    case 3:
+                        shoulderL.setPosition(0.3);
+                        shoulderR.setPosition(0.6);
+                        if (upElapsedTime >= 500) {
+                            upStep++;
+                            upStartTime = System.currentTimeMillis();
+                        }
+                        break;
+                    case 4:
+                        slideMotorL.setTargetPosition(0);
+                        slideMotorR.setTargetPosition(0);
+                        break;
+                }
+            }
+                telemetry.addData("specMode?", specMode);
                 telemetry.addData("outtake claw pos", outtakeClaw.getPosition());
                 telemetry.addData("outtake wrist pos", outtakeWrist.getPosition());
                 telemetry.addData("outtake elbow pos", outtakeElbow.getPosition());
