@@ -19,9 +19,9 @@ import pedroPathing.constants.LConstants;
 @Config
 public class AlexBond2 extends LinearOpMode {
     public double barInterval = 0.01;
-    public double elbowDown = 0.23; //updated elbow vals
-    public double elbowHunting = 0.32;
-    public double elbowUp = 0.85;
+    public static double elbowDown = 0.21; //updated elbow vals
+    public static double elbowHunting = 0.3;
+    public static double elbowUp = 0.85;
     public static double pickUpSpecElbow = 0;
     public double wristHoriz = 0.17;
     long transferStartTime = 0;
@@ -91,9 +91,11 @@ public class AlexBond2 extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         telemetry.setMsTransmissionInterval(11);
         limelight.start();
+        limelight.updatePythonInputs(0,0,0,0,0,0,0,0);
 
         intakeBarL = hardwareMap.get(Servo.class, "intakeBarL");
         intakeBarL.scaleRange(0.35, 0.67);
@@ -118,11 +120,11 @@ public class AlexBond2 extends LinearOpMode {
         shoulderR.scaleRange(0.05, 0.9);
 
         intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
+        intakeClaw.scaleRange(0.2, 0.65);
         intakeClaw.setPosition(0.5);
-        intakeClaw.scaleRange(0.39, 0.65);
         intakeWrist = hardwareMap.get(Servo.class, "intakeWrist");
         intakeWrist.setPosition(0.5);
-        intakeWrist.scaleRange(0.18, 0.82);
+        intakeWrist.scaleRange(0.26, 0.76);
         intakeElbow = hardwareMap.get(Servo.class, "intakeElbow");
         intakeElbow.setPosition(0.5);
 
@@ -186,7 +188,6 @@ public class AlexBond2 extends LinearOpMode {
                 intakeWrist.setPosition(intakeWrist.getPosition() + 0.005);
             if (gamepad1.left_bumper && !gamepad1.right_bumper)
                 intakeWrist.setPosition(intakeWrist.getPosition() - 0.005);
-            //if (gamepad1.right_stick_button) wristAdjust();
 
             //outtake claw
             if (gamepad1.y && !yLast) {
@@ -201,10 +202,11 @@ public class AlexBond2 extends LinearOpMode {
             aLast = gamepad1.a;
 
 //BOOLEANS
+            //Hi Parker
             if (intakeClawOpen) {
-                intakeClaw.setPosition(0);
-            } else {
                 intakeClaw.setPosition(1);
+            } else {
+                intakeClaw.setPosition(0);
             }
 
             if (outtakeClawOpen) {
@@ -229,6 +231,7 @@ public class AlexBond2 extends LinearOpMode {
                 else if (gamepad1.dpad_right) intakeWrist.setPosition(0); //good horizontal
                 else if (gamepad1.dpad_up) intakeWrist.setPosition(0.75); //good 45 right
                 else if (gamepad1.dpad_down) intakeWrist.setPosition(0.25); //good 45 left
+                if (gamepad1.right_stick_button) wristAdjust();
             } else {
                 if (gamepad1.dpad_right) {
                     intakeElbow.setPosition(elbowDown);
@@ -248,6 +251,7 @@ public class AlexBond2 extends LinearOpMode {
                     upStartTime = System.currentTimeMillis();
                 }
             }
+            telemetry.addData("hunting?", hunting);
     //TRANSFER TOGGLE
             if (gamepad1.b && !transferLast) {
                 transferMode = !transferMode;
@@ -349,15 +353,14 @@ public class AlexBond2 extends LinearOpMode {
                             }
                             break;
                         case 2:
-                            shoulderL.setPosition(0.43);
-                            shoulderR.setPosition(0.57);
+                            shoulderL.setPosition(0.44);
+                            shoulderR.setPosition(0.56);
                             if (transferElapsedTime >= wait3) {
                                 transferStep++;
                                 transferStartTime = System.currentTimeMillis();
                             }
                             break;
                         case 3:
-                            outtakeClaw.setPosition(1);
                             outtakeClawOpen = false;
                             if (transferElapsedTime >= wait4) {
                                 transferStep++;
@@ -365,13 +368,14 @@ public class AlexBond2 extends LinearOpMode {
                             }
                             break;
                         case 4:
-                            intakeClaw.setPosition(0);
                             intakeClawOpen = true;
                             if (transferElapsedTime >= wait4) {
                                 transferStep++;
                                 transferStartTime = System.currentTimeMillis();
                             }
                         case 5:
+                            intakeBarL.setPosition(0.8);
+                            intakeBarR.setPosition(0.2);
                             shoulderL.setPosition(1);
                             shoulderR.setPosition(0);
                             slideMotorL.setTargetPosition(2250);
@@ -408,8 +412,8 @@ public class AlexBond2 extends LinearOpMode {
                             }
                             break;
                         case 2:
-                            shoulderL.setPosition(0.3);
-                            shoulderR.setPosition(0.6);
+                            shoulderL.setPosition(0.25);
+                            shoulderR.setPosition(0.75);
                             if (specElapsedTime >= 1000) {
                                 specStep++;
                                 specStartTime = System.currentTimeMillis();
@@ -476,27 +480,29 @@ public class AlexBond2 extends LinearOpMode {
                 telemetry.update();
 
             }
+        limelight.stop();
         }
-        /*
     public void wristAdjust(){
+        intakeWrist.scaleRange(0, 1);
         result = limelight.getLatestResult();
         if (result != null) {
+            telemetry.addData("result", result);
             array = result.getPythonOutput();
             angle = array[2];
-            rangifiedAngle = angle/180;
+            rangifiedAngle = angle/300;
             if (rangifiedAngle < 0){
-                wristPos = -0.5-rangifiedAngle+0.5;
+                wristPos = -0.3-rangifiedAngle+0.5;
             }
             else{
-                wristPos = 0.5-rangifiedAngle+0.5;
+                wristPos = 0.3-rangifiedAngle+0.5;
             }
             telemetry.addData("angle", angle);
             telemetry.addData("wrist pos", wristPos);
             intakeWrist.setPosition(wristPos);
         }
 
+        intakeWrist.scaleRange(0.26, 0.76);
     }
-         */
 }
 
 
