@@ -20,7 +20,7 @@ import pedroPathing.constants.LConstants;
 public class AlexBond2 extends LinearOpMode {
     public double barInterval = 0.01;
     public static double elbowDown = 0.21; //updated elbow vals
-    public static double elbowHunting = 0.3;
+    public static double elbowHunting = 0.35;
     public static double elbowUp = 0.85;
     public static double pickUpSpecElbow = 0;
     public double wristHoriz = 0.17;
