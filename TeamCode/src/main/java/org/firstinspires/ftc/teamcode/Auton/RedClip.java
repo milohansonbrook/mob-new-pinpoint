@@ -104,7 +104,7 @@ public class RedClip extends OpMode {
     private final Pose set3 = new Pose(48, -42, Math.toRadians(0));
     private final Pose prePush3 = new Pose(48, -45, Math.toRadians(0));
     private final Pose observe3 = new Pose(11.3, -45, Math.toRadians(0));
-    private final Pose grabPos = new Pose(0.5, -26, Math.toRadians(0));
+    private final Pose grabPos = new Pose(1, -26, Math.toRadians(0));
     private final Pose groundGrab1 = new Pose(21.9161, -13.2278, Math.toRadians(310.966));
     private final Pose deposit1 = new Pose(18.119, -15.7396, Math.toRadians(238.3991));
     private final Pose groundGrab2 = new Pose(23.3654, -22.6956, Math.toRadians(310.2748));
