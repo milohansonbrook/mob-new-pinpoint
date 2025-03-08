@@ -357,6 +357,7 @@ public class AlexBond2 extends LinearOpMode {
                                 transferStartTime = System.currentTimeMillis();
                             }
                             break;
+
                         case 1:
                             intakeBarL.setPosition(0.85);
                             intakeBarR.setPosition(0.15);

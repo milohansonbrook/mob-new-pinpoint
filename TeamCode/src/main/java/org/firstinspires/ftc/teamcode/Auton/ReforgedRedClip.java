@@ -19,6 +19,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
+
 @Autonomous(name = "clippy clip Reforged", group = "Autonomous")
 @Config
 public class ReforgedRedClip extends OpMode {
