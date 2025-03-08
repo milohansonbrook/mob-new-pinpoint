@@ -69,7 +69,7 @@ public class RedClip extends OpMode {
     public static double backForWall = 0.0;
     public static double OutWristInit = 0.175;
     public static double InElbowInit = 0.6;
-    public static double OutElbowInit = 0.5;
+    public static double OutElbowInit = 0.4;
     public static int slideWall = 10;
     public static double OutClawInit = 0.98;
     public static double InClawInit = 0.5;
@@ -104,7 +104,7 @@ public class RedClip extends OpMode {
     private final Pose set3 = new Pose(48, -42, Math.toRadians(0));
     private final Pose prePush3 = new Pose(48, -45, Math.toRadians(0));
     private final Pose observe3 = new Pose(11.3, -45, Math.toRadians(0));
-    private final Pose grabPos = new Pose(3, -26, Math.toRadians(0));
+    private final Pose grabPos = new Pose(0.5, -26, Math.toRadians(0));
     private final Pose groundGrab1 = new Pose(21.9161, -13.2278, Math.toRadians(310.966));
     private final Pose deposit1 = new Pose(18.119, -15.7396, Math.toRadians(238.3991));
     private final Pose groundGrab2 = new Pose(23.3654, -22.6956, Math.toRadians(310.2748));
@@ -237,7 +237,7 @@ public class RedClip extends OpMode {
         //rShoulder.setPosition(0.9);
         //lShoulder.setPosition(0.1);
         OutElbow.setPosition(pickUpSpecElbow);
-        setPathState("set wrist");
+        setPathState("slides");
     }
 
     public void buildPaths() {
@@ -361,24 +361,29 @@ public class RedClip extends OpMode {
 
         public void autonomousPathUpdate() {
             switch (pathState) {
+                case "slides":
+                    grabMotorR.setTargetPosition(800);
+                    grabMotorL.setTargetPosition(800);
+                    if (pathTimer.getElapsedTime() > 1500){
+                        setPathState("set wrist");
+                    }
                 case "set wrist":
-
+                    grabMotorR.setTargetPosition(800);
+                    grabMotorL.setTargetPosition(800);
                     if (!follower.isBusy()) {
                         follower.followPath(bar1, true);
                         setPathState("move to bar");
                     }
-                    OutClaw.setPosition(0.98);
+                    //OutClaw.setPosition(0.98);
                     OutWrist.setPosition(0.175);
-                    grabMotorR.setTargetPosition(800);
-                    grabMotorL.setTargetPosition(800);
                     break;
 
                 case "move to bar":
-                    twoBarL.setPosition(0.8);
-                    twoBarR.setPosition(0.2);
-                    OutWrist.setPosition(0.175);
+                        twoBarL.setPosition(0.8);
+                        twoBarR.setPosition(0.2);
+                        OutWrist.setPosition(0.175);
                     OutElbow.setPosition(pickUpSpecElbow);
-                    if (pathTimer.getElapsedTime() >= 100) {
+                    if (pathTimer.getElapsedTime() >= 200) {
                         specStep++;
                         setPathState("clip");
                     }
@@ -633,32 +638,33 @@ public class RedClip extends OpMode {
                     OutClaw.setPosition(clawOpen);
 
                     if (!follower.isBusy()) {
-                        setPathState("move");
+                        setPathState("close claw");
                     }
                     break;
 
-                case "move":
-                    if (pathTimer.getElapsedTime() > 1000)
-                    {
+                case "close claw":
+                    //arm movement to grab off wall
+                    if (pathTimer.getElapsedTime() > 500) {
                         OutClaw.setPosition(clawClose);
+                        setPathState("move");
                     }
-                    if (pathTimer.getElapsedTime() > 1100)
-                    {
-                        OutClaw.setPosition(0.98);
+
+                    break;
+
+                case "move":
+                    if (pathTimer.getElapsedTime() > 1100) {
+                        //OutClaw.setPosition(0.98);
                         OutWrist.setPosition(0.175);
                         OutElbow.setPosition(pickUpSpecElbow);
                         grabMotorR.setTargetPosition(800);
                         grabMotorL.setTargetPosition(800);
-                    }
-
-                    if (!follower.isBusy()) {
                         follower.followPath(bar2, true);
-
                         setPathState("move to bar2");
                     }
-                    break;
-                case "move to bar2":
 
+                    break;
+
+                case "move to bar2":
 
                     /*OutWrist.setPosition(0);
                     OutElbow.setPosition(pickUpSpecElbow);
@@ -677,7 +683,6 @@ public class RedClip extends OpMode {
                     break;
 
                 case "clip2":
-                    outtakeClawOpen = false;
                     OutClaw.setPosition(0.98);
                     InElbow.setPosition(0.5);
                     if (pathTimer.getElapsedTime() >= 100) {
@@ -760,14 +765,20 @@ public class RedClip extends OpMode {
                     OutClaw.setPosition(clawOpen);
                     if (!follower.isBusy())
                     {
-                        setPathState("move2");
+                        setPathState("close claw2");
                     }
                     break;
-                case "move2":
-                    if (pathTimer.getElapsedTime() > 1000)
-                    {
+
+                case "close claw2":
+                    //arm movement to grab off wall
+                    if (pathTimer.getElapsedTime() > 500) {
                         OutClaw.setPosition(clawClose);
+                        setPathState("move2");
                     }
+
+                    break;
+
+                case "move2":
                      if (pathTimer.getElapsedTime() > 1100)
                      {
                          OutClaw.setPosition(0.98);
@@ -775,6 +786,7 @@ public class RedClip extends OpMode {
                          OutElbow.setPosition(pickUpSpecElbow);
                          grabMotorR.setTargetPosition(800);
                          grabMotorL.setTargetPosition(800);
+                         outtakeClawOpen = false;
                      }
 
                     if (!follower.isBusy()) {
@@ -802,7 +814,6 @@ public class RedClip extends OpMode {
                     break;
 
                 case "clip3":
-                    outtakeClawOpen = false;
                     OutClaw.setPosition(0.98);
                     if (pathTimer.getElapsedTime() >= 100) {
                         specStep++;
@@ -901,6 +912,7 @@ public class RedClip extends OpMode {
                         OutElbow.setPosition(pickUpSpecElbow);
                         grabMotorR.setTargetPosition(800);
                         grabMotorL.setTargetPosition(800);
+                        outtakeClawOpen = false;
                     }
 
                     if (!follower.isBusy()) {
@@ -925,7 +937,6 @@ public class RedClip extends OpMode {
                     break;
 
                 case "clip4":
-                    outtakeClawOpen = false;
                     OutClaw.setPosition(0.98);
                     if (pathTimer.getElapsedTime() >= 100) {
                         specStep++;
@@ -1022,6 +1033,7 @@ public class RedClip extends OpMode {
                         OutElbow.setPosition(pickUpSpecElbow);
                         grabMotorR.setTargetPosition(800);
                         grabMotorL.setTargetPosition(800);
+                        outtakeClawOpen = false;
                     }
 
                     if (!follower.isBusy()) {
@@ -1047,7 +1059,6 @@ public class RedClip extends OpMode {
                     break;
 
                 case "clip5":
-                    outtakeClawOpen = false;
                     OutClaw.setPosition(0.98);
                     if (pathTimer.getElapsedTime() >= 100) {
                         specStep++;
