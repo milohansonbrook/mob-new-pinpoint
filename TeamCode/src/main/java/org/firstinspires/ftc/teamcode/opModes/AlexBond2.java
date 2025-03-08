@@ -20,7 +20,7 @@ import pedroPathing.constants.LConstants;
 public class AlexBond2 extends LinearOpMode {
     public double barInterval = 0.01;
     public static double elbowDown = 0.21; //updated elbow vals
-    public static double elbowHunting = 0.35;
+    public static double elbowHunting = 0.38;
     public static double elbowUp = 0.85;
     public static double pickUpSpecElbow = 0;
     public double wristHoriz = 0.17;
@@ -52,6 +52,8 @@ public class AlexBond2 extends LinearOpMode {
     // moves vertical slides up and down
     DcMotor slideMotorR; //3E
     DcMotor slideMotorL;//3C
+    DcMotor hangMotorL;
+    DcMotor hangMotorR;
     boolean transferActive;
     boolean transferComplete;
     boolean transferMode;
@@ -120,7 +122,7 @@ public class AlexBond2 extends LinearOpMode {
         shoulderR.scaleRange(0.05, 0.9);
 
         intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
-        intakeClaw.scaleRange(0.2, 0.65);
+        intakeClaw.scaleRange(0.17, 0.65);
         intakeClaw.setPosition(0.5);
         intakeWrist = hardwareMap.get(Servo.class, "intakeWrist");
         intakeWrist.setPosition(0.5);
@@ -143,10 +145,25 @@ public class AlexBond2 extends LinearOpMode {
         slideMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slideMotorR.setPower(1);
 
+        hangMotorL = hardwareMap.get(DcMotor.class, "hangMotorL");
+        hangMotorL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hangMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        hangMotorL.setTargetPosition(0);
+        hangMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hangMotorL.setPower(1);
+
+        hangMotorR = hardwareMap.get(DcMotor.class, "hangMotorR");
+        hangMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        hangMotorR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hangMotorR.setDirection(DcMotorSimple.Direction.REVERSE);
+        hangMotorR.setTargetPosition(0);
+        hangMotorR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hangMotorR.setPower(1);
+
         turnHangL = hardwareMap.get(Servo.class, "turnHangL");
         turnHangL.setPosition(0.5);
         turnHangR = hardwareMap.get(Servo.class, "turnHangR");
-        turnHangR.setPosition(0.5);
+        turnHangR.setPosition(0.485);
 
         Constants.setConstants(FConstants.class, LConstants.class);
         follower = new Follower(hardwareMap);
@@ -228,16 +245,15 @@ public class AlexBond2 extends LinearOpMode {
                 intakeClawOpen = true;
 
                 if (gamepad1.dpad_left) intakeWrist.setPosition(0.5); //double press good vert
-                else if (gamepad1.dpad_right) intakeWrist.setPosition(0); //good horizontal
+                else if (gamepad1.dpad_right) intakeWrist.setPosition(1); //good horizontal
                 else if (gamepad1.dpad_up) intakeWrist.setPosition(0.75); //good 45 right
                 else if (gamepad1.dpad_down) intakeWrist.setPosition(0.25); //good 45 left
                 if (gamepad1.right_stick_button) wristAdjust();
             } else {
+                if (gamepad1.a) intakeClawOpen = false;
                 if (gamepad1.dpad_right) {
                     intakeElbow.setPosition(elbowDown);
-                    intakeClawOpen = false;
                 }
-
                 else if (gamepad1.dpad_up) {
                     specStep = 0;
                     specActive = true;
@@ -266,7 +282,7 @@ public class AlexBond2 extends LinearOpMode {
                     intakeClawOpen = false;
                     intakeElbow.setPosition(elbowUp);
                     intakeWrist.setPosition(1);
-                    outtakeElbow.setPosition(0.6);
+                    outtakeElbow.setPosition(0.55);
                     outtakeWrist.setPosition(0.42);
                     shoulderL.setPosition(0.48);
                     shoulderR.setPosition(0.52);
@@ -284,7 +300,7 @@ public class AlexBond2 extends LinearOpMode {
                     intakeElbow.setPosition(elbowHunting);
                     hunting = true;
                     intakeWrist.setPosition(1);
-                    outtakeElbow.setPosition(0.6);
+                    outtakeElbow.setPosition(0.55);
                     outtakeWrist.setPosition(0.42);
                     shoulderL.setPosition(0.48);
                     shoulderR.setPosition(0.52);
@@ -330,12 +346,12 @@ public class AlexBond2 extends LinearOpMode {
                     switch (transferStep) {
                         //point elbow down when over sample
                         case 0:
-                            intakeBarL.setPosition(0.8);
-                            intakeBarR.setPosition(0.2);
-                            shoulderL.setPosition(0.48);
-                            shoulderR.setPosition(0.52);
+                            intakeBarL.setPosition(0.85);
+                            intakeBarR.setPosition(0.15);
+                            shoulderL.setPosition(0.52);
+                            shoulderR.setPosition(0.48);
                             outtakeWrist.setPosition(0);
-                            outtakeElbow.setPosition(0.6);
+                            outtakeElbow.setPosition(0.45);
                             if (transferElapsedTime >= wait1) {
                                 transferStep++;
                                 transferStartTime = System.currentTimeMillis();
@@ -353,8 +369,9 @@ public class AlexBond2 extends LinearOpMode {
                             }
                             break;
                         case 2:
-                            shoulderL.setPosition(0.44);
-                            shoulderR.setPosition(0.56);
+                            shoulderL.setPosition(0.45);
+                            shoulderR.setPosition(0.55);
+                            outtakeElbow.setPosition(0.6);
                             if (transferElapsedTime >= wait3) {
                                 transferStep++;
                                 transferStartTime = System.currentTimeMillis();
@@ -374,14 +391,14 @@ public class AlexBond2 extends LinearOpMode {
                                 transferStartTime = System.currentTimeMillis();
                             }
                         case 5:
-                            intakeBarL.setPosition(0.8);
-                            intakeBarR.setPosition(0.2);
+                            intakeBarL.setPosition(0.75);
+                            intakeBarR.setPosition(0.25);
                             shoulderL.setPosition(1);
                             shoulderR.setPosition(0);
-                            slideMotorL.setTargetPosition(2250);
-                            slideMotorR.setTargetPosition(2250);
+                            slideMotorL.setTargetPosition(1850);
+                            slideMotorR.setTargetPosition(1850);
                             outtakeWrist.setPosition(0);
-                            outtakeElbow.setPosition(1);
+                            outtakeElbow.setPosition(0.9);
                             transferComplete = true;
                             transferActive = false;
                             if (transferElapsedTime >= wait5) {
@@ -462,6 +479,22 @@ public class AlexBond2 extends LinearOpMode {
                         break;
                 }
             }
+
+            //HANG BELOW
+
+            if (gamepad2.y)
+            {
+                hangMotorL.setTargetPosition(4200);
+                hangMotorR.setTargetPosition(4200);
+            }
+            if (gamepad2.cross)
+            {
+                hangMotorL.setTargetPosition(0);
+                hangMotorR.setTargetPosition(0);
+            }
+
+
+
                 telemetry.addData("specMode?", specMode);
                 telemetry.addData("outtake claw pos", outtakeClaw.getPosition());
                 telemetry.addData("outtake wrist pos", outtakeWrist.getPosition());
