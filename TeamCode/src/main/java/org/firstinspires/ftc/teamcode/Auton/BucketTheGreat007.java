@@ -35,6 +35,8 @@ public class BucketTheGreat007 extends OpMode {
     Servo outtakeElbow; //1C
     Servo outtakeWrist;//4C
     Servo outtakeClaw; //5C
+    Servo leftHang;
+    Servo rightHang;
 
     // moves vertical slides up and down
     DcMotor slideMotorR; //3E
