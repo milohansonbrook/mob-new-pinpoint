@@ -22,6 +22,8 @@ import pedroPathing.constants.LConstants;
 @TeleOp
 @Config
 public class AlexBond2 extends LinearOpMode {
+    //public ColorRangeSensor intakeGrippyLight;
+    //public ColorRangeSensor outtakeGrippyLight;
     public double barInterval = 0.01;
     public static double elbowDown = 0.20; //updated elbow vals
     public static double elbowHunting = 0.37;
@@ -59,7 +61,6 @@ public class AlexBond2 extends LinearOpMode {
     DcMotor slideMotorL;//3C
     DcMotor hangMotorL;
     DcMotor hangMotorR;
-    //ColorRangeSensor intakeGrippyLight, outakeGrippyLight;
     boolean transferActive;
     boolean transferComplete;
     boolean transferMode;
@@ -85,17 +86,23 @@ public class AlexBond2 extends LinearOpMode {
     public static int wait4 = 400;
     public static int wait5 = 500;
     public static int wait6 = 500;
-    public static double milimetersToSensePickup = 3;
     private Follower follower;
     private final Pose startPose = new Pose(0, 0, 0);
 
     //Limelight vars
+    private Limelight3A limelight;
+    private LLResult result;
+    double[] array;
+    double angle;
+    double wristPos;
+    long time;
+    double rangifiedAngle;
 
     @Override
     public void runOpMode() throws InterruptedException {
 
         //intakeGrippyLight = hardwareMap.get(ColorRangeSensor.class, "intake_sense");
-        //outakeGrippyLight = hardwareMap.get(ColorRangeSensor.class, "outake_sense");
+        //outtakeGrippyLight = hardwareMap.get(ColorRangeSensor.class, "outtake_sense");
 
         intakeBarL = hardwareMap.get(Servo.class, "intakeBarL");
         intakeBarL.scaleRange(0.35, 0.67);
@@ -109,7 +116,7 @@ public class AlexBond2 extends LinearOpMode {
         outtakeClaw.scaleRange(0.4, 0.7);
         outtakeWrist = hardwareMap.get(Servo.class, "outtakeWrist");
         outtakeWrist.setPosition(0.55);
-        outtakeWrist.scaleRange(0.27, 0.92);
+        outtakeWrist.scaleRange(0.21, 0.86);
         outtakeElbow = hardwareMap.get(Servo.class, "outtakeElbow");
         outtakeElbow.setPosition(0.75);
         shoulderL = hardwareMap.get(Servo.class, "shoulderL");
@@ -132,13 +139,13 @@ public class AlexBond2 extends LinearOpMode {
 
         slideMotorL = hardwareMap.get(DcMotor.class, "slideMotorL");
         slideMotorL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideMotorL.setTargetPosition(0);
         slideMotorL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slideMotorL.setPower(1);
 
         slideMotorR = hardwareMap.get(DcMotor.class, "slideMotorR");
-        slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideMotorR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slideMotorR.setDirection(DcMotorSimple.Direction.REVERSE);
         slideMotorR.setTargetPosition(0);
@@ -153,7 +160,7 @@ public class AlexBond2 extends LinearOpMode {
         hangMotorL.setPower(1);
 
         hangMotorR = hardwareMap.get(DcMotor.class, "hangMotorR");
-        hangMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+       hangMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hangMotorR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         hangMotorR.setDirection(DcMotorSimple.Direction.REVERSE);
         hangMotorR.setTargetPosition(0);
@@ -188,7 +195,6 @@ public class AlexBond2 extends LinearOpMode {
             b2Last = gamepad2.b;
 
             /* Telemetry Outputs of our Follower */
-            //telemetry.addLine("milimeterWEachSwebnsor: " + intakeGrippyLight.getDistance(DistanceUnit.MM) + "\nthis is outake one: " + outakeGrippyLight.getDistance(DistanceUnit.MM));
             telemetry.addData("X", follower.getPose().getX());
             telemetry.addData("Y", follower.getPose().getY());
             telemetry.addData("Heading in Degrees", Math.toDegrees(follower.getPose().getHeading()));
@@ -215,11 +221,6 @@ public class AlexBond2 extends LinearOpMode {
             yLast = gamepad1.y;
 
             //intake claw
-            if (gamepad1.a && !aLast) {
-                intakeClawOpen = !intakeClawOpen;
-            }
-            aLast = gamepad1.a;
-
 
 //BOOLEANS
             //Hi Parker
@@ -255,7 +256,10 @@ public class AlexBond2 extends LinearOpMode {
                     intakeElbow.setPosition(0.5);
                 }
             } else {
-                if (gamepad1.a) intakeClawOpen = false;
+                if (gamepad1.a && !aLast) {
+                    intakeClawOpen = !intakeClawOpen;
+                }
+                aLast = gamepad1.a;
                 if (gamepad1.dpad_right) {
                     intakeElbow.setPosition(elbowDown);
                 }
@@ -387,18 +391,13 @@ public class AlexBond2 extends LinearOpMode {
                         break;
                     case 3:
                         outtakeClawOpen = false;
-                        if (transferElapsedTime >= 400) {
-                            transferStep++;
-                            transferStartTime = runtime.milliseconds();
-                        }
-                        break;
-                    case 4:
                         intakeClawOpen = true;
                         if (transferElapsedTime >= 1000) {
                             transferStep++;
                             transferStartTime = runtime.milliseconds();
                         }
-                    case 5:
+                        break;
+                    case 4:
                         intakeBarL.setPosition(0.75);
                         intakeBarR.setPosition(0.25);
                         shoulderL.setPosition(1);
