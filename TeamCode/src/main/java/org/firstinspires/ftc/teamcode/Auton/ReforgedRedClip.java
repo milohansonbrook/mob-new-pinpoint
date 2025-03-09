@@ -71,7 +71,7 @@ public class ReforgedRedClip extends OpMode {
     public static double OutElbowInit = 0.4;
     public static int slideWall = 10;
     public static double OutClawInit = 0.98;
-    public static double InClawInit = 0.5;
+    public static double InClawInit = 1;
     public static double clawClose = 1;
     public static double clawOpen = 0;
     public static int slideClipPose1 = 250;
@@ -192,7 +192,7 @@ public class ReforgedRedClip extends OpMode {
         }
 
         InClaw = hardwareMap.get(Servo.class, "intakeClaw");
-        InClaw.scaleRange(0.1, 0.65);
+        InClaw.scaleRange(0.17, 0.65);
         InClaw.setPosition(InClawInit);
 
         OutClaw = hardwareMap.get(Servo.class, "outtakeClaw");
@@ -773,6 +773,9 @@ public class ReforgedRedClip extends OpMode {
                         setPathState("Fini ;)");
                     }
                         break;
+                case "Fini ;)":
+                    terminateOpModeNow();
+                    break;
 
 
 
