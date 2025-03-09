@@ -6,14 +6,14 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 @TeleOp(name = "freak")
 public class freakIt extends LinearOpMode {
-    private DcMotor grabMotorL;
-    private DcMotor grabMotorR;
+    private DcMotor slideMotorL;
+    private DcMotor slideMotorR;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        grabMotorL = hardwareMap.get(DcMotor.class, "grabMotorL");
-        grabMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        grabMotorR = hardwareMap.get(DcMotor.class, "grabMotorR");
-        grabMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slideMotorL = hardwareMap.get(DcMotor.class, "slideMotorL");
+        slideMotorL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slideMotorR = hardwareMap.get(DcMotor.class, "slideMotorR");
+        slideMotorR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 }
