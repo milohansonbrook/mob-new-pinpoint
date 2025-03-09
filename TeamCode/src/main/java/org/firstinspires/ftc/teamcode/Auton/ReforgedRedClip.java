@@ -59,7 +59,7 @@ public class ReforgedRedClip extends OpMode {
 
     //technical poses
 
-
+    public static int vertSlidePos = 1810;
     public static double armMidPosR = 0.63;
     public static double armMidPosL = (1 - armMidPosR);
     public static double barDown = 0.5;
@@ -81,42 +81,18 @@ public class ReforgedRedClip extends OpMode {
 
 
     //drive poses
-    public static double clipPoseX = 27.5;//changed
-    public static double clipPoseY = 14.1;
-    public static double clipPoseHeading;
+    public static double helperX = 21.5; //initially 21.5
+    public static double helperY = -15.5;
+    public static double clip4PoseX = 26.5;
+    public static double clip3PoseX = 29.7;
+    public static double clip2PoseX = 29.25;
+    public static double clip1PoseX = 27.5;//changed
+    public static double clip1PoseY = 14.1;
 
     String pathState = "init";
-    private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
-    private final Pose clip1 = new Pose(clipPoseX, clipPoseY, Math.toRadians(0));
-    private final Pose clip2 = new Pose(28.5, 13.6, Math.toRadians(0));
-    private final Pose clip3 = new Pose(29.7, 11, Math.toRadians(0));
 
-    private final Pose clip4 = new Pose(26.5, 10, Math.toRadians(0));
-    private final Pose clip5 = new Pose(30, 17.1, Math.toRadians(0));
-    private final Pose prePush1 = new Pose(47.8, -32, Math.toRadians(0)); //front
-    private final Pose helper = new Pose(21.5, -15.5, Math.toRadians(0)); //like near post
-    private final Pose set1 = new Pose(46, -22, Math.toRadians(0)); //left front of samples
-    private final Pose observe1 = new Pose(7.7, -33, Math.toRadians(0)); //ob zone
-    private final Pose set2 = new Pose(47, -33, Math.toRadians(0));
-    private final Pose prePush2 = new Pose(46.5, -38, Math.toRadians(0));
-    private final Pose observe2 = new Pose(10.5, -38, Math.toRadians(0));
-    private final Pose set3 = new Pose(48, -42, Math.toRadians(0));
-    private final Pose prePush3 = new Pose(48, -45, Math.toRadians(0));
-    private final Pose observe3 = new Pose(11.3, -45, Math.toRadians(0));
-    private final Pose grabPos = new Pose(0.5, -26, Math.toRadians(0));
-    private final Pose groundGrab1 = new Pose(21.9161, -13.2278, Math.toRadians(310.966));
-    private final Pose deposit1 = new Pose(18.119, -15.7396, Math.toRadians(238.3991));
-    private final Pose groundGrab2 = new Pose(23.3654, -22.6956, Math.toRadians(310.2748));
-    private final Pose deposit2 = new Pose(17.976, -21.3913, Math.toRadians(229.069));
-    private final Pose groundGrab3 = new Pose(22.622, -31.9177, Math.toRadians(306.215));
-    private final Pose turn = new Pose (19.033, -31.5586, Math.toRadians(0));
-    private final Pose side = new Pose(14, -30, Math.toRadians(0)); // intermediate point
-
-    private final Pose deposit3 = new Pose(19.033, -31.5586, Math.toRadians(195.122));
     //two bar 0.5 and 0.5
-
-
-
+    private Pose startPose, clip1, clip2, clip3, clip4, clip5, prePush1, helper, set1, observe1, set2, prePush2, observe2, set3, prePush3, observe3, grabPos, groundGrab1, deposit1, groundGrab2, deposit2, deposit3, groundGrab3, turn, side;
     private Follower follower;
     private PathChain barToGround, groundToDepo1, depoToGround1, groundToDepo2, depoToGround2, groundToDepo3, turnPreGrab;
     private PathChain bar1, bar5, moveSide, grab4, pushPoint1, pushPoint2, pushPoint3, pushPoint4, pushPoint5, pushPoint6, pushPoint7, pushPoint8, pushPoint9, pushPoint10, grab1, grab2, grab3, bar2, bar3, bar4,park;
@@ -125,6 +101,33 @@ public class ReforgedRedClip extends OpMode {
 
     @Override
     public void init() {
+        startPose = new Pose(0, 0, Math.toRadians(0));
+        clip1 = new Pose(clip1PoseX, clip1PoseY, Math.toRadians(0));
+        clip2 = new Pose(clip2PoseX, 13.6, Math.toRadians(0));
+        clip3 = new Pose(clip3PoseX, 11, Math.toRadians(0));
+
+        clip4 = new Pose(clip4PoseX, 10, Math.toRadians(0));
+        clip5 = new Pose(30, 17.1, Math.toRadians(0));
+        prePush1 = new Pose(47.8, -32, Math.toRadians(0)); //front
+        helper = new Pose(helperX, helperY, Math.toRadians(0)); //like near post
+        set1 = new Pose(46, -22, Math.toRadians(0)); //left front of samples
+        observe1 = new Pose(7.7, -33, Math.toRadians(0)); //ob zone
+        set2 = new Pose(47, -33, Math.toRadians(0));
+        prePush2 = new Pose(46.5, -38, Math.toRadians(0));
+        observe2 = new Pose(10.5, -38, Math.toRadians(0));
+        set3 = new Pose(48, -42, Math.toRadians(0));
+        prePush3 = new Pose(48, -45, Math.toRadians(0));
+        observe3 = new Pose(11.3, -45, Math.toRadians(0));
+        grabPos = new Pose(0.5, -26, Math.toRadians(0));
+        groundGrab1 = new Pose(21.9161, -13.2278, Math.toRadians(310.966));
+        deposit1 = new Pose(18.119, -15.7396, Math.toRadians(238.3991));
+        groundGrab2 = new Pose(23.3654, -22.6956, Math.toRadians(310.2748));
+        deposit2 = new Pose(17.976, -21.3913, Math.toRadians(229.069));
+        groundGrab3 = new Pose(22.622, -31.9177, Math.toRadians(306.215));
+        turn = new Pose (19.033, -31.5586, Math.toRadians(0));
+        side = new Pose(14, -30, Math.toRadians(0)); // intermediate point
+        deposit3 = new Pose(19.033, -31.5586, Math.toRadians(195.122));
+
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         telemetry.setMsTransmissionInterval(11);
@@ -432,14 +435,14 @@ public class ReforgedRedClip extends OpMode {
                 case "yet another":
                     rShoulder.setPosition(0.5);
                     lShoulder.setPosition(0.5);
-                    if (pathTimer.getElapsedTime() >= 200) {
+                    if (pathTimer.getElapsedTime() >= 250) {
                         specStep++;
                         setPathState("two to go");
                     }
                     break;
                 case "two to go":
-                    grabMotorR.setTargetPosition(1645);
-                    grabMotorL.setTargetPosition(1645);
+                    grabMotorR.setTargetPosition(1655);
+                    grabMotorL.setTargetPosition(1655);
                     if (pathTimer.getElapsedTime() >= 200) {
                         specStep++;
                         setPathState("last clip");
@@ -638,8 +641,8 @@ public class ReforgedRedClip extends OpMode {
 
                 case "Bar1Place2"://PLACE THE SPECIMEN
                     if(!follower.isBusy()){
-                        grabMotorR.setTargetPosition(1655);
-                        grabMotorL.setTargetPosition(1655);
+                        grabMotorR.setTargetPosition(vertSlidePos);
+                        grabMotorL.setTargetPosition(vertSlidePos);
                         if(pathTimer.getElapsedTime() > 600){
                             OutClaw.setPosition(clawOpen);
                             setPathState("ToWall2");
@@ -692,8 +695,8 @@ public class ReforgedRedClip extends OpMode {
                     break;
                 case "Bar2Place2"://PLACE THE SPECIMEN
                     if(!follower.isBusy()){
-                        grabMotorR.setTargetPosition(1645);
-                        grabMotorL.setTargetPosition(1645);
+                        grabMotorR.setTargetPosition(vertSlidePos);
+                        grabMotorL.setTargetPosition(vertSlidePos);
                         if(pathTimer.getElapsedTime() > 650){
                             OutClaw.setPosition(clawOpen);
                             setPathState("ToWall3");
@@ -744,8 +747,8 @@ public class ReforgedRedClip extends OpMode {
                     break;
                 case "Bar3Place2"://PLACE THE SPECIMEN
                     if(!follower.isBusy()){
-                        grabMotorR.setTargetPosition(1645);
-                        grabMotorL.setTargetPosition(1645);
+                        grabMotorR.setTargetPosition(vertSlidePos);
+                        grabMotorL.setTargetPosition(vertSlidePos);
                         if(pathTimer.getElapsedTime() > 650){
                             OutClaw.setPosition(clawOpen);
                             setPathState("PARKER");
@@ -758,8 +761,8 @@ public class ReforgedRedClip extends OpMode {
                     twoBarR.setPosition(0.2);
                     rShoulder.setPosition(0.73);
                     lShoulder.setPosition(0.27);
-                    grabMotorL.setTargetPosition(50);
-                    grabMotorR.setTargetPosition(50);
+                    grabMotorL.setTargetPosition(0);
+                    grabMotorR.setTargetPosition(0);
                     OutWrist.setPosition(0.175);
                     OutElbow.setPosition(0.47);
 //                    OutElbow.setPosition(0.25);

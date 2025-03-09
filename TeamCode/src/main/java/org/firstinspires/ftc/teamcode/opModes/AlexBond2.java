@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -27,11 +28,12 @@ public class AlexBond2 extends LinearOpMode {
     public static double elbowUp = 0.83;
     public static double pickUpSpecElbow = 0;
     public double wristHoriz = 0.17;
-    long transferStartTime = 0;
+    public ElapsedTime runtime = new ElapsedTime();
+    double transferStartTime = 0;
     int transferStep = 0;
-    long specStartTime = 0;
+    double specStartTime = 0;
     int specStep = 0;
-    long upStartTime;
+    double upStartTime;
     int upStep;
     // left Servo (two bar)
     Servo intakeBarL; //0C
@@ -125,6 +127,8 @@ public class AlexBond2 extends LinearOpMode {
         intakeWrist.scaleRange(0.24, 0.74);
         intakeElbow = hardwareMap.get(Servo.class, "intakeElbow");
         intakeElbow.setPosition(0.5);
+        runtime.reset();
+
 
         slideMotorL = hardwareMap.get(DcMotor.class, "slideMotorL");
         slideMotorL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -169,6 +173,7 @@ public class AlexBond2 extends LinearOpMode {
 
         waitForStart();
         follower.startTeleopDrive();
+        runtime.reset();
         while (opModeIsActive()) {
 //ALWAYS
             //drive
@@ -215,6 +220,7 @@ public class AlexBond2 extends LinearOpMode {
             }
             aLast = gamepad1.a;
 
+
 //BOOLEANS
             //Hi Parker
             if (intakeClawOpen) {
@@ -245,23 +251,29 @@ public class AlexBond2 extends LinearOpMode {
                 else if (gamepad1.dpad_right) intakeWrist.setPosition(1); //good horizontal
                 else if (gamepad1.dpad_up) intakeWrist.setPosition(0.75); //good 45 right
                 else if (gamepad1.dpad_down) intakeWrist.setPosition(0.25); //good 45 left
+                if (gamepad1.ps) {
+                    intakeElbow.setPosition(0.5);
+                }
             } else {
                 if (gamepad1.a) intakeClawOpen = false;
                 if (gamepad1.dpad_right) {
                     intakeElbow.setPosition(elbowDown);
+                }
+                if (gamepad1.ps) {
+                    intakeElbow.setPosition(0.5);
                 }
             }
             if (gamepad1.dpad_up) {
                 specStep = 0;
                 specActive = true;
                 specComplete = false;
-                specStartTime = System.currentTimeMillis();
+                specStartTime = runtime.milliseconds();
             }
             if (gamepad1.dpad_down) {
                 upStep = 0;
                 upActive = true;
                 upComplete = false;
-                upStartTime = System.currentTimeMillis();
+                upStartTime = runtime.milliseconds();
             }
             telemetry.addData("hunting?", hunting);
             //TRANSFER TOGGLE
@@ -285,7 +297,7 @@ public class AlexBond2 extends LinearOpMode {
                     transferStep = 0;
                     transferActive = true;
                     transferComplete = false;
-                    transferStartTime = System.currentTimeMillis();
+                    transferStartTime = runtime.milliseconds();
                 }
             } else {
                 if (gamepad1.b) {
@@ -337,19 +349,19 @@ public class AlexBond2 extends LinearOpMode {
 
 //SAMPLE TRANSFER SEQUENCE
             if (transferActive && !transferComplete) {
-                long transferElapsedTime = System.currentTimeMillis() - transferStartTime;
+                double transferElapsedTime = runtime.milliseconds() - transferStartTime;
                 switch (transferStep) {
                     //point elbow down when over sample
                     case 0:
-                        intakeBarL.setPosition(0.85);
-                        intakeBarR.setPosition(0.15);
-                        shoulderL.setPosition(0.52);
-                        shoulderR.setPosition(0.48);
+                        intakeBarL.setPosition(0.82);
+                        intakeBarR.setPosition(0.18);
+                        shoulderL.setPosition(0.55);
+                        shoulderR.setPosition(0.45);
                         outtakeWrist.setPosition(0);
                         outtakeElbow.setPosition(0.45);
                         if (transferElapsedTime >= wait1) {
                             transferStep++;
-                            transferStartTime = System.currentTimeMillis();
+                            transferStartTime = runtime.milliseconds();
                         }
                         break;
 
@@ -361,7 +373,7 @@ public class AlexBond2 extends LinearOpMode {
                         intakeWrist.setPosition(0.5);
                         if (transferElapsedTime >= wait2) {
                             transferStep++;
-                            transferStartTime = System.currentTimeMillis();
+                            transferStartTime = runtime.milliseconds();
                         }
                         break;
                     case 2:
@@ -370,21 +382,21 @@ public class AlexBond2 extends LinearOpMode {
                         outtakeElbow.setPosition(0.6);
                         if (transferElapsedTime >= wait3) {
                             transferStep++;
-                            transferStartTime = System.currentTimeMillis();
+                            transferStartTime = runtime.milliseconds();
                         }
                         break;
                     case 3:
                         outtakeClawOpen = false;
                         if (transferElapsedTime >= 400) {
                             transferStep++;
-                            transferStartTime = System.currentTimeMillis();
+                            transferStartTime = runtime.milliseconds();
                         }
                         break;
                     case 4:
                         intakeClawOpen = true;
                         if (transferElapsedTime >= 1000) {
                             transferStep++;
-                            transferStartTime = System.currentTimeMillis();
+                            transferStartTime = runtime.milliseconds();
                         }
                     case 5:
                         intakeBarL.setPosition(0.75);
@@ -399,7 +411,7 @@ public class AlexBond2 extends LinearOpMode {
                         transferActive = false;
                         if (transferElapsedTime >= wait5) {
                             transferStep++;
-                            transferStartTime = System.currentTimeMillis();
+                            transferStartTime = runtime.milliseconds();
                         }
                         break;
                 }
@@ -407,50 +419,50 @@ public class AlexBond2 extends LinearOpMode {
 //SPEC SEQUENCE
 
             if (specActive && !specComplete) {
-                long specElapsedTime = System.currentTimeMillis() - specStartTime;
+                double specElapsedTime = runtime.milliseconds() - specStartTime;
                 switch (specStep) {
                     case 0:
                         slideMotorR.setTargetPosition(900);
                         slideMotorL.setTargetPosition(900);
                         if (specElapsedTime >= 1000) {
                             specStep++;
-                            specStartTime = System.currentTimeMillis();
+                            specStartTime = runtime.milliseconds();
                         }
                         break;
                     case 1:
                         outtakeElbow.setPosition(1);
                         if (specElapsedTime >= 200) {
                             specStep++;
-                            specStartTime = System.currentTimeMillis();
+                            specStartTime = runtime.milliseconds();
                         }
                         break;
                     case 2:
-                        shoulderL.setPosition(0.25);
-                        shoulderR.setPosition(0.75);
+                        shoulderL.setPosition(0.5);
+                        shoulderR.setPosition(0.5);
                         if (specElapsedTime >= 1000) {
                             specStep++;
-                            specStartTime = System.currentTimeMillis();
+                            specStartTime = runtime.milliseconds();
                         }
                         break;
                 }
             }
 
             if (upActive && !upComplete) {
-                long upElapsedTime = System.currentTimeMillis() - upStartTime;
+                double upElapsedTime = runtime.milliseconds() - upStartTime;
                 switch (upStep) {
                     case 0:
                         slideMotorL.setTargetPosition(1790);
                         slideMotorR.setTargetPosition(1790);
                         if (upElapsedTime >= 700) {
                             upStep++;
-                            upStartTime = System.currentTimeMillis();
+                            upStartTime = runtime.milliseconds();
                         }
                         break;
                     case 1:
                         outtakeClawOpen = true;
                         if (upElapsedTime >= 400) {
                             upStep++;
-                            upStartTime = System.currentTimeMillis();
+                            upStartTime = runtime.milliseconds();
                         }
                         break;
                     case 2:
@@ -458,7 +470,7 @@ public class AlexBond2 extends LinearOpMode {
                         shoulderR.setPosition(0.55);
                         if (upElapsedTime >= 500) {
                             upStep++;
-                            upStartTime = System.currentTimeMillis();
+                            upStartTime = runtime.milliseconds();
                         }
                         break;
                     case 3:
@@ -466,7 +478,7 @@ public class AlexBond2 extends LinearOpMode {
                         shoulderR.setPosition(0.6);
                         if (upElapsedTime >= 500) {
                             upStep++;
-                            upStartTime = System.currentTimeMillis();
+                            upStartTime = runtime.milliseconds();
                         }
                         break;
                     case 4:

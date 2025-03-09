@@ -84,8 +84,8 @@ public class plzWork extends OpMode {
 
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
     private final Pose bucketDrop = new Pose(3.80568, 20.0666, 5.4525);
-    private final Pose grab1Pose = new Pose(17.76188, 8.617, 0.04685);
-    private final Pose grab2Pose = new Pose(19.837455449141856, 19.131693201740898, 6.26);
+    private final Pose grab1Pose = new Pose(17.76188, 9.817, 0.04685);
+    private final Pose grab2Pose = new Pose(19.837455449141856, 20.531693201740898, 6.26);
     private final Pose grab3Pose = new Pose(19.002, 12.851, 0.741);
     private final Pose park = new Pose(53.925, -17.822, 4.653);
 
@@ -389,7 +389,7 @@ public class plzWork extends OpMode {
                 }
                 break;
             case "score bucket 2 f":
-                if (pathTimer.getElapsedTime() > 1000)
+                if (pathTimer.getElapsedTime() > 1500)
                 {
                     // Parker Macro here
                     twoBarL.setPosition(0.75);
@@ -404,7 +404,7 @@ public class plzWork extends OpMode {
                 }
                 break;
             case "reset arm 2":
-                if (pathTimer.getElapsedTime() > 1000)
+                if (pathTimer.getElapsedTime() > 1500)
                 {
                     // Parker reset arm so bot doesn't commit suicide
                     outtakeClawOpen = true;
