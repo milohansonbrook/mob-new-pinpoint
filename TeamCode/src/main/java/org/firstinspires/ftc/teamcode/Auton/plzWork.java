@@ -91,6 +91,8 @@ public class plzWork extends OpMode {
 
 
     //drive poses
+
+
     public static double clipPoseX = 27.5;//changed
     public static double clipPoseY = 14.1;
     public static double clipPoseHeading;

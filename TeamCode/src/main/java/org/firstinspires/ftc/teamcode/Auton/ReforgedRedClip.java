@@ -56,6 +56,7 @@ public class ReforgedRedClip extends OpMode {
 
     //Waits
     public static int clawWait = 1000;
+    // hi
 
     //technical poses
 
