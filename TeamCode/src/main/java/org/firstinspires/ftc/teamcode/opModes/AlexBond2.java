@@ -24,7 +24,7 @@ public class AlexBond2 extends LinearOpMode {
     public double barInterval = 0.01;
     public static double elbowDown = 0.20; //updated elbow vals
     public static double elbowHunting = 0.37;
-    public static double elbowUp = 0.84;
+    public static double elbowUp = 0.83;
     public static double pickUpSpecElbow = 0;
     public double wristHoriz = 0.17;
     long transferStartTime = 0;
@@ -107,7 +107,7 @@ public class AlexBond2 extends LinearOpMode {
         outtakeClaw.scaleRange(0.4, 0.7);
         outtakeWrist = hardwareMap.get(Servo.class, "outtakeWrist");
         outtakeWrist.setPosition(0.55);
-        outtakeWrist.scaleRange(0.25, 0.9);
+        outtakeWrist.scaleRange(0.27, 0.92);
         outtakeElbow = hardwareMap.get(Servo.class, "outtakeElbow");
         outtakeElbow.setPosition(0.75);
         shoulderL = hardwareMap.get(Servo.class, "shoulderL");
@@ -122,7 +122,7 @@ public class AlexBond2 extends LinearOpMode {
         intakeClaw.setPosition(0.5);
         intakeWrist = hardwareMap.get(Servo.class, "intakeWrist");
         intakeWrist.setPosition(0.5);
-        intakeWrist.scaleRange(0.26, 0.76);
+        intakeWrist.scaleRange(0.24, 0.74);
         intakeElbow = hardwareMap.get(Servo.class, "intakeElbow");
         intakeElbow.setPosition(0.5);
 
@@ -199,9 +199,9 @@ public class AlexBond2 extends LinearOpMode {
 
             //manual intake wrist
             if (gamepad1.right_bumper && !gamepad1.left_bumper)
-                intakeWrist.setPosition(intakeWrist.getPosition() + 0.005);
+                intakeWrist.setPosition(intakeWrist.getPosition() + 0.008);
             if (gamepad1.left_bumper && !gamepad1.right_bumper)
-                intakeWrist.setPosition(intakeWrist.getPosition() - 0.005);
+                intakeWrist.setPosition(intakeWrist.getPosition() - 0.008);
 
             //outtake claw
             if (gamepad1.y && !yLast) {
@@ -375,14 +375,14 @@ public class AlexBond2 extends LinearOpMode {
                         break;
                     case 3:
                         outtakeClawOpen = false;
-                        if (transferElapsedTime >= wait4) {
+                        if (transferElapsedTime >= 400) {
                             transferStep++;
                             transferStartTime = System.currentTimeMillis();
                         }
                         break;
                     case 4:
                         intakeClawOpen = true;
-                        if (transferElapsedTime >= wait4) {
+                        if (transferElapsedTime >= 1000) {
                             transferStep++;
                             transferStartTime = System.currentTimeMillis();
                         }
