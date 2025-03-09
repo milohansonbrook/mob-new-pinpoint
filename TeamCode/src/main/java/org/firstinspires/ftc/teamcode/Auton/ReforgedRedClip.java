@@ -82,19 +82,19 @@ public class ReforgedRedClip extends OpMode {
 
     //drive poses
     public static double clipPoseX = 27.5;//changed
-    public static double clipPoseY = 11.1;
+    public static double clipPoseY = 14.1;
     public static double clipPoseHeading;
 
     String pathState = "init";
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
     private final Pose clip1 = new Pose(clipPoseX, clipPoseY, Math.toRadians(0));
-    private final Pose clip2 = new Pose(28, 12.6, Math.toRadians(0));
-    private final Pose clip3 = new Pose(29.7, 14.1, Math.toRadians(0));
+    private final Pose clip2 = new Pose(28.5, 13.6, Math.toRadians(0));
+    private final Pose clip3 = new Pose(29.7, 11, Math.toRadians(0));
 
-    private final Pose clip4 = new Pose(29.7, 15.6, Math.toRadians(0));
+    private final Pose clip4 = new Pose(26.5, 10, Math.toRadians(0));
     private final Pose clip5 = new Pose(30, 17.1, Math.toRadians(0));
-    private final Pose prePush1 = new Pose(47.8, -33, Math.toRadians(0)); //front
-    private final Pose helper = new Pose(21.5, -15, Math.toRadians(0)); //like near post
+    private final Pose prePush1 = new Pose(47.8, -32, Math.toRadians(0)); //front
+    private final Pose helper = new Pose(21.5, -15.5, Math.toRadians(0)); //like near post
     private final Pose set1 = new Pose(46, -22, Math.toRadians(0)); //left front of samples
     private final Pose observe1 = new Pose(7.7, -33, Math.toRadians(0)); //ob zone
     private final Pose set2 = new Pose(47, -33, Math.toRadians(0));
@@ -110,6 +110,8 @@ public class ReforgedRedClip extends OpMode {
     private final Pose deposit2 = new Pose(17.976, -21.3913, Math.toRadians(229.069));
     private final Pose groundGrab3 = new Pose(22.622, -31.9177, Math.toRadians(306.215));
     private final Pose turn = new Pose (19.033, -31.5586, Math.toRadians(0));
+    private final Pose side = new Pose(14, -30, Math.toRadians(0)); // intermediate point
+
     private final Pose deposit3 = new Pose(19.033, -31.5586, Math.toRadians(195.122));
     //two bar 0.5 and 0.5
 
@@ -117,7 +119,7 @@ public class ReforgedRedClip extends OpMode {
 
     private Follower follower;
     private PathChain barToGround, groundToDepo1, depoToGround1, groundToDepo2, depoToGround2, groundToDepo3, turnPreGrab;
-    private PathChain bar1, bar5, grab4, pushPoint1, pushPoint2, pushPoint3, pushPoint4, pushPoint5, pushPoint6, pushPoint7, pushPoint8, pushPoint9, pushPoint10, grab1, grab2, grab3, bar2, bar3, bar4,park;
+    private PathChain bar1, bar5, moveSide, grab4, pushPoint1, pushPoint2, pushPoint3, pushPoint4, pushPoint5, pushPoint6, pushPoint7, pushPoint8, pushPoint9, pushPoint10, grab1, grab2, grab3, bar2, bar3, bar4,park;
     Timer opmodeTimer;
     Timer pathTimer;
 
@@ -292,9 +294,9 @@ public class ReforgedRedClip extends OpMode {
                 .setLinearHeadingInterpolation(prePush3.getHeading(), observe3.getHeading())
                 .build();
         grab1 = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(observe2), new Point(grabPos)))
-                .setLinearHeadingInterpolation(observe2.getHeading(), grabPos.getHeading())
-                .build();
+                .addPath(new BezierLine(new Point(side), new Point(grabPos)))
+                .setLinearHeadingInterpolation(side.getHeading(), grabPos.getHeading())
+                .build(); // if problem change side to observe2
         bar2 = follower.pathBuilder()
                 .addPath(new BezierLine(new Point(grabPos), new Point(clip2)))
                 .setLinearHeadingInterpolation(grabPos.getHeading(), clip2.getHeading())
@@ -356,6 +358,10 @@ public class ReforgedRedClip extends OpMode {
                 .addPath(new BezierLine(new Point(grabPos), new Point(clip5)))
                 .setLinearHeadingInterpolation(grabPos.getHeading(), clip5.getHeading())
                 .build();
+        moveSide = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(observe2), new Point(side)))
+                .setLinearHeadingInterpolation(observe2.getHeading(), side.getHeading())
+                .build(); // if problem remove
 
 
     }
@@ -523,7 +529,7 @@ public class ReforgedRedClip extends OpMode {
                     if (!follower.isBusy()) {
                         follower.followPath(pushPoint7, true);
 //                        setPathState("grab 2nd sample");
-                        setPathState("INTERN");
+                        setPathState("side");
                     }
                     break;
 
@@ -572,6 +578,12 @@ public class ReforgedRedClip extends OpMode {
                         setPathState("Grab1");
                     }
                     break;
+                case "side":
+                    if (!follower.isBusy())
+                    {
+                        follower.followPath(moveSide);
+                        setPathState("INTERN");
+                    }
 
                 case "INTERN":
 //                    if(pathTimer.getElapsedTime()>1000)setPathState("Grab1");
@@ -626,8 +638,8 @@ public class ReforgedRedClip extends OpMode {
 
                 case "Bar1Place2"://PLACE THE SPECIMEN
                     if(!follower.isBusy()){
-                        grabMotorR.setTargetPosition(1645);
-                        grabMotorL.setTargetPosition(1645);
+                        grabMotorR.setTargetPosition(1655);
+                        grabMotorL.setTargetPosition(1655);
                         if(pathTimer.getElapsedTime() > 600){
                             OutClaw.setPosition(clawOpen);
                             setPathState("ToWall2");
