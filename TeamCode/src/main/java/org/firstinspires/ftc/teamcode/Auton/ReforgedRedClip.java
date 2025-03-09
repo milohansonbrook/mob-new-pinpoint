@@ -23,7 +23,7 @@ import pedroPathing.constants.LConstants;
 @Autonomous(name = "clippy clip Reforged", group = "Autonomous")
 @Config
 public class ReforgedRedClip extends OpMode {
-    public static double pickUpSpecElbow = 0.68;
+    public static double pickUpSpecElbow = 0.8;
     long specStartTime = 0;
     int specStep = 0;
 
@@ -83,11 +83,11 @@ public class ReforgedRedClip extends OpMode {
 
     //drive poses
     public static double helperX = 21.5; //initially 21.5
-    public static double helperY = -15.5;
-    public static double clip4PoseX = 26.5;
-    public static double clip3PoseX = 29.7;
-    public static double clip2PoseX = 29.25;
-    public static double clip1PoseX = 27.5;//changed
+    public static double helperY = -17;
+    public static double clip4PoseX = 25.5;
+    public static double clip3PoseX = 28.5;
+    public static double clip2PoseX = 28;
+    public static double clip1PoseX = 27;//changed
     public static double clip1PoseY = 14.1;
 
     String pathState = "init";
@@ -442,8 +442,8 @@ public class ReforgedRedClip extends OpMode {
                     }
                     break;
                 case "two to go":
-                    grabMotorR.setTargetPosition(1655);
-                    grabMotorL.setTargetPosition(1655);
+                    grabMotorR.setTargetPosition(1695);
+                    grabMotorL.setTargetPosition(1695);
                     if (pathTimer.getElapsedTime() >= 200) {
                         specStep++;
                         setPathState("last clip");
@@ -635,19 +635,28 @@ public class ReforgedRedClip extends OpMode {
                     if(pathTimer.getElapsedTime() > 250){
                     rShoulder.setPosition(0.5);
                     lShoulder.setPosition(0.5);
-                    OutElbow.setPosition(1);
+                    OutElbow.setPosition(0.8);
                     if (pathTimer.getElapsedTime() > 2000)setPathState("Bar1Place2");
                     }
                     break;
 
                 case "Bar1Place2"://PLACE THE SPECIMEN
-                    if(!follower.isBusy()){
-                        grabMotorR.setTargetPosition(vertSlidePos);
-                        grabMotorL.setTargetPosition(vertSlidePos);
-                        if(pathTimer.getElapsedTime() > 600){
-                            OutClaw.setPosition(clawOpen);
-                            setPathState("ToWall2");
+                    //if(!follower.isBusy()){
+                    grabMotorR.setTargetPosition(1695);
+                    grabMotorL.setTargetPosition(1695);
+
+                        if(!follower.isBusy()){
+
+                            //OutClaw.setPosition(clawOpen);
+                            setPathState("claw open");
                         }
+                    //}
+                    break;
+                case "claw open":
+                    if (pathTimer.getElapsedTime()>500)
+                    {
+                        OutClaw.setPosition(clawOpen);
+                        setPathState("ToWall2");
                     }
                     break;
 
@@ -696,12 +705,19 @@ public class ReforgedRedClip extends OpMode {
                     break;
                 case "Bar2Place2"://PLACE THE SPECIMEN
                     if(!follower.isBusy()){
-                        grabMotorR.setTargetPosition(vertSlidePos);
-                        grabMotorL.setTargetPosition(vertSlidePos);
+                        grabMotorR.setTargetPosition(1695);
+                        grabMotorL.setTargetPosition(1695);
                         if(pathTimer.getElapsedTime() > 650){
-                            OutClaw.setPosition(clawOpen);
-                            setPathState("ToWall3");
+                            //OutClaw.setPosition(clawOpen);
+                            setPathState("claw open2");
                         }
+                    }
+                    break;
+                case "claw open2":
+                    if (pathTimer.getElapsedTime()>500)
+                    {
+                        OutClaw.setPosition(clawOpen);
+                        setPathState("ToWall3");
                     }
                     break;
                 case "ToWall3":
@@ -748,12 +764,19 @@ public class ReforgedRedClip extends OpMode {
                     break;
                 case "Bar3Place2"://PLACE THE SPECIMEN
                     if(!follower.isBusy()){
-                        grabMotorR.setTargetPosition(vertSlidePos);
-                        grabMotorL.setTargetPosition(vertSlidePos);
+                        grabMotorR.setTargetPosition(1695);
+                        grabMotorL.setTargetPosition(1695);
                         if(pathTimer.getElapsedTime() > 650){
-                            OutClaw.setPosition(clawOpen);
-                            setPathState("PARKER");
+                            //OutClaw.setPosition(clawOpen);
+                            setPathState("claw open3");
                         }
+                    }
+                    break;
+                case "claw open3":
+                    if (pathTimer.getElapsedTime()>500)
+                    {
+                        OutClaw.setPosition(clawOpen);
+                        setPathState("PARKER");
                     }
                     break;
                 case "PARKER":
