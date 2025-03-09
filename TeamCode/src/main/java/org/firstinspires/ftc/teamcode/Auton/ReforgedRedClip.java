@@ -90,6 +90,7 @@ public class ReforgedRedClip extends OpMode {
     public static double clip1PoseX = 27;//changed
     public static double clip1PoseY = 14.1;
 
+
     String pathState = "init";
 
     //two bar 0.5 and 0.5
